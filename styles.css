@@ -212,6 +212,13 @@ h1 {
   padding: 0 1rem;
 }
 
+.brand-logo {
+  display: block;
+  width: clamp(238px, 32vw, 342px);
+  height: auto;
+  align-items: left-side;
+}
+
 .search-control:focus-within {
   border-color: rgba(17, 97, 73, 0.75);
   box-shadow: 0 0 0 4px rgba(17, 97, 73, 0.13), var(--shadow);

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Explore open roles at Headsbase and find your next opportunity."
+    />
+    <title>Careers at Headsbase</title>
+    <link rel="preconnect" href="http://localhost:3000" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="module" src="./js/main.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#jobs">Skip to jobs</a>
+
+    <header class="site-header">
+      <nav class="nav" aria-label="Primary navigation">
+        <a class="brand" href="./index.html" aria-label="Headsbase careers home">
+          <span class="brand-mark" aria-hidden="true">H</span>
+          <span>Headsbase</span>
+        </a>
+        <div class="nav-actions">
+          <a href="#jobs">Open roles</a>
+          <a href="mailto:careers@headsbase.com">Contact</a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-content reveal">
+          <p class="eyebrow">Careers at Headsbase</p>
+          <h1 id="hero-title">Build the next standard for talent intelligence.</h1>
+          <p class="hero-copy">
+            Join a focused team shaping how ambitious companies discover, evaluate,
+            and hire exceptional people with clarity.
+          </p>
+        </div>
+        <div class="hero-stat reveal" aria-label="Hiring principles">
+          <span>01</span>
+          <strong>Clear problems</strong>
+          <p>We hire people who want ownership, pace, and room to do thoughtful work.</p>
+        </div>
+      </section>
+
+      <section class="jobs-section" id="jobs" aria-labelledby="jobs-title">
+        <div class="section-heading reveal">
+          <div>
+            <p class="eyebrow">Open roles</p>
+            <h2 id="jobs-title">Find your place at Headsbase</h2>
+          </div>
+          <p id="jobs-count" class="jobs-count" aria-live="polite">Loading roles</p>
+        </div>
+
+        <form class="filter-bar reveal" role="search" aria-label="Filter open roles">
+          <div class="filter-search">
+            <label class="visually-hidden" for="job-search">Search roles</label>
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path
+                d="m21 21-4.35-4.35m1.35-5.15a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.8"
+              />
+            </svg>
+            <input
+              id="job-search"
+              type="search"
+              placeholder="Search title, company, or skill"
+              autocomplete="off"
+            />
+          </div>
+
+          <label class="filter-select">
+            <span class="visually-hidden">Location</span>
+            <select id="location-filter">
+              <option value="">Remote</option>
+              <option value="remote">Remote</option>
+              <option value="onsite">On-site</option>
+              <option value="hybrid">Hybrid</option>
+            </select>
+          </label>
+
+          <label class="filter-select">
+            <span class="visually-hidden">Employment type</span>
+            <select id="employment-filter">
+              <option value="">Employment</option>
+            </select>
+          </label>
+
+          <label class="filter-select">
+            <span class="visually-hidden">Company</span>
+            <select id="company-filter">
+              <option value="">Company</option>
+            </select>
+          </label>
+
+          <label class="filter-select">
+            <span class="visually-hidden">Posted date</span>
+            <select id="posted-filter">
+              <option value="">Posted</option>
+              <option value="7">Last 7 days</option>
+              <option value="30">Last 30 days</option>
+            </select>
+          </label>
+
+          <label class="filter-select">
+            <span class="visually-hidden">Sort roles</span>
+            <select id="sort-filter">
+              <option value="newest">Newest</option>
+              <option value="oldest">Oldest</option>
+            </select>
+          </label>
+        </form>
+
+        <div class="filter-summary">
+          <div id="active-filters" class="active-filters" aria-label="Active filters"></div>
+          <button id="clear-filters" class="clear-filters" type="button" hidden>
+            Clear filters
+          </button>
+        </div>
+
+        <div id="status-region" class="status-region" role="status" aria-live="polite"></div>
+        <div id="jobs-grid" class="jobs-grid" aria-busy="true"></div>
+
+        <div class="load-more-wrap">
+          <button id="load-more" class="button secondary" type="button" hidden>
+            Load more roles
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>Headsbase Careers</p>
+      <a href="mailto:careers@headsbase.com">careers@headsbase.com</a>
+    </footer>
+  </body>
+</html>

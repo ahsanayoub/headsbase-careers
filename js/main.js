@@ -25,36 +25,46 @@ let isLoading = false;
 const PAGE_SIZE = 20;
 
 function init() {
+  // Search input (debounced)
+  search.addEventListener(
+    "input",
+    debounce(handleFiltersChanged, 300)
+  );
+
+  // Press Enter to search immediately
+  search.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      handleFiltersChanged();
+    }
+  });
+
+  // Dropdowns
   [
-      search,
-      locationFilter,
-      employmentFilter,
-      companyFilter,
-      postedFilter,
-      sortFilter,
+    locationFilter,
+    employmentFilter,
+    companyFilter,
+    postedFilter,
+    sortFilter,
   ].forEach((control) => {
-      control.addEventListener("input", handleFiltersChanged);
-      control.addEventListener("change", handleFiltersChanged);
+    control.addEventListener("change", handleFiltersChanged);
   });
 
   clearFilters.addEventListener("click", resetFilters);
 
   activeFilters.addEventListener(
-      "pointerdown",
-      handleFilterChipInteraction
+    "pointerdown",
+    handleFilterChipInteraction
   );
 
   activeFilters.addEventListener(
-      "click",
-      handleFilterChipInteraction
+    "click",
+    handleFilterChipInteraction
   );
 
   loadMore.addEventListener("click", () => {
-      if (!hasMore || isLoading) {
-          return;
-      }
+    if (!hasMore || isLoading) return;
 
-      loadJobs(currentPage + 1);
+    loadJobs(currentPage + 1);
   });
 
   loadJobs();
@@ -331,4 +341,17 @@ function formatCount(value, filtered) {
   const noun = value === 1 ? "role" : "roles";
   return filtered ? `${value} matching ${noun}` : `${value} open ${noun}`;
 }
+
+function debounce(fn, delay = 300) {
+  let timeout;
+
+  return (...args) => {
+    clearTimeout(timeout);
+
+    timeout = setTimeout(() => {
+      fn(...args);
+    }, delay);
+  };
+}
+
 init();

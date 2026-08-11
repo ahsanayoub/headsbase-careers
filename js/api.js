@@ -1,5 +1,6 @@
 const API_PATH = "/api/jobs";
 const LOCAL_API = "https://htn-api-production.up.railway.app/api/jobs";
+const APPLICATION_API = "https://htn-api-production.up.railway.app/api/applications";
 
 function getEndpoints() {
     const endpoints = [API_PATH];
@@ -11,105 +12,60 @@ function getEndpoints() {
     return endpoints;
 }
 
-export async function fetchJobs({
-    page = 1,
-    limit = 20,
-    search,
-    company,
-    employmentType,
-    locationType,
-    remote,
-    source,
-    posted,
-    sort,
-} = {}) {
+export async function fetchJobs({ page = 1, limit = 20, search, company, employmentType, locationType, remote, source, posted, sort } = {}) {
     let lastError;
-
     for (const endpoint of getEndpoints()) {
-        console.log("Trying endpoint:", endpoint);
         try {
-            const url = endpoint.startsWith("http")
-            ? new URL(endpoint)
-            : new URL(endpoint, window.location.origin);
-
-            console.log("Fetching:", url.toString());
-
+            const url = endpoint.startsWith("http") ? new URL(endpoint) : new URL(endpoint, window.location.origin);
             url.searchParams.set("page", page);
             url.searchParams.set("limit", limit);
-
-            
-
             if (search) url.searchParams.set("search", search);
             if (company) url.searchParams.set("company", company);
             if (employmentType) url.searchParams.set("employmentType", employmentType);
             if (locationType) url.searchParams.set("locationType", locationType);
             if (source) url.searchParams.set("source", source);
             if (posted) url.searchParams.set("posted", posted);
-if (sort) url.searchParams.set("sort", sort);
-
-            if (remote !== undefined) {
-                url.searchParams.set("remote", remote);
-            }
-
-            const response = await fetch(url.toString(), {
-                headers: {
-                    Accept: "application/json",
-                },
-            });
-
-            if (!response.ok) {
-                throw new Error(`Jobs request failed with ${response.status}`);
-            }
-
+            if (sort) url.searchParams.set("sort", sort);
+            if (remote !== undefined) url.searchParams.set("remote", remote);
+            const response = await fetch(url.toString(), { headers: { Accept: "application/json" } });
+            if (!response.ok) throw new Error(`Jobs request failed with ${response.status}`);
             const payload = await response.json();
-
-            if (!payload.success || !Array.isArray(payload.data)) {
-                throw new Error("Jobs response was not in the expected format");
-            }
-
-            return {
-                jobs: payload.data,
-                pagination: payload.pagination,
-            };
-        } catch (error) {
-            lastError = error;
-        }
+            if (!payload.success || !Array.isArray(payload.data)) throw new Error("Jobs response was not in the expected format");
+            return { jobs: payload.data, pagination: payload.pagination };
+        } catch (error) { lastError = error; }
     }
-
     throw lastError || new Error("Jobs request failed");
 }
 
 export async function findJobById(jobId) {
     let lastError;
-
     for (const endpoint of getEndpoints()) {
         try {
-            const response = await fetch(`${endpoint}/${jobId}`, {
-                headers: {
-                    Accept: "application/json",
-                },
-            });
-
+            const response = await fetch(`${endpoint}/${jobId}`, { headers: { Accept: "application/json" } });
             if (!response.ok) {
-                if (response.status === 404) {
-                    lastError = new Error("Job not found on this endpoint");
-                    continue;
-                }
-            
+                if (response.status === 404) { lastError = new Error("Job not found on this endpoint"); continue; }
                 throw new Error(`Job request failed with ${response.status}`);
             }
-
             const payload = await response.json();
-
-            if (!payload.success) {
-                throw new Error("Job response was not in the expected format");
-            }
-
+            if (!payload.success) throw new Error("Job response was not in the expected format");
             return payload.data;
-        } catch (error) {
-            lastError = error;
-        }
+        } catch (error) { lastError = error; }
     }
-
     throw lastError || new Error("Job request failed");
+}
+
+export async function submitApplication(application) {
+    const response = await fetch(APPLICATION_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(application),
+    });
+
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload.success) {
+        const error = new Error(payload.message || "Unable to submit application");
+        error.status = response.status;
+        throw error;
+    }
+    return payload.data;
 }

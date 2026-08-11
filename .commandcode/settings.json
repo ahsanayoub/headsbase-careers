@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Shell(cd C:\\Users\\HP\\hb-careers\\outputs && ls -la css 2>/dev/null; echo \"---\"; ls -la .commandcode/ 2>/dev/null; echo \"---\"; cat .gitignore 2>/dev/null)",
+      "Shell()",
+      "Shell(find:*)",
+      "Shell(type:*)"
+    ],
+    "deny": [],
+    "defaultMode": "default"
+  }
+}

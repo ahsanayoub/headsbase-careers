@@ -1,0 +1,20 @@
+- Reuses existing stylesheets and design language rather than recreating shared styles (e.g., "Reuse styles.css"). Confidence: 0.9
+- Maintains separation of concerns by isolating page-specific styles into dedicated CSS files while keeping shared styles separate (e.g., "Create apply.css only for page-specific styling"). Confidence: 0.85
+- Prefers CSS Grid for layout construction over Flexbox or other layout methods. Confidence: 0.85
+- Builds clean modular HTML/CSS/JS with clear separation between structure, presentation, and behavior. Confidence: 0.9
+- Reuses existing JavaScript modules rather than duplicating functionality (e.g., "Reuse api.js"). Confidence: 0.8
+- Prioritizes accessibility: semantic labels, required-field markers, and keyboard navigation. Confidence: 0.85
+- Builds mobile-responsive layouts as a standard practice. Confidence: 0.85
+- Practices incremental development — defers backend/submission logic until explicitly requested. Confidence: 0.8
+- Uses fixed-width sidebar + fluid content layout pattern (e.g., "Desktop: Left column 360px, Right column fluid"). Confidence: 0.65
+- Tracks multi-step work with todo lists, updating task statuses throughout the build process. Confidence: 0.9
+- Validates code with shell commands (e.g., `node --check`, CSS brace balancing, `git status`) before considering work complete. Confidence: 0.9
+- Prefers CSS classes over inline styles — replaces inline style attributes with dedicated CSS classes. Confidence: 0.8
+- Removes unused or dead code (e.g., unused CSS rules) to keep files clean. Confidence: 0.75
+- Iteratively fixes issues discovered during self-review (typos, mismatches, unused code). Confidence: 0.8
+- Reuses existing API configuration/environment patterns rather than hardcoding backend URLs. Confidence: 0.9
+- Disables the submit button during form submission to prevent double submissions. Confidence: 0.9
+- Shows a clear loading state during async/form operations. Confidence: 0.85
+- Does not expose raw server/database errors to users; shows user-friendly messages instead. Confidence: 0.9
+- Avoids modifying the backend or unrelated files; preserves existing behavior and design. Confidence: 0.85
+- Prefers vanilla JavaScript over introducing frameworks like React. Confidence: 0.85

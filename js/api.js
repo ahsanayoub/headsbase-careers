@@ -1,11 +1,12 @@
+const PRODUCTION_ORIGIN = "https://htn-api-production.up.railway.app";
 const API_PATH = "/api/jobs";
-const LOCAL_API = "https://htn-api-production.up.railway.app/api/jobs";
+const LOCAL_API = `${PRODUCTION_ORIGIN}${API_PATH}`;
 
-function getEndpoints() {
-    const endpoints = [API_PATH];
+function getEndpoints(path = API_PATH) {
+    const endpoints = [path];
 
-    if (window.location.origin !== "https://htn-api-production.up.railway.app/api/jobs") {
-        endpoints.push(LOCAL_API);
+    if (window.location.origin !== LOCAL_API) {
+        endpoints.push(`${PRODUCTION_ORIGIN}${path}`);
     }
 
     return endpoints;
@@ -112,4 +113,38 @@ export async function findJobById(jobId) {
     }
 
     throw lastError || new Error("Job request failed");
+}
+
+export async function applyApplication(application) {
+    let lastError;
+
+    for (const endpoint of getEndpoints("/api/applications")) {
+        try {
+            const response = await fetch(endpoint, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                },
+                body: JSON.stringify(application),
+            });
+
+            const payload = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                const error = new Error(
+                    `Application submission failed with ${response.status}`,
+                );
+                error.status = response.status;
+                error.payload = payload;
+                throw error;
+            }
+
+            return payload;
+        } catch (error) {
+            lastError = error;
+        }
+    }
+
+    throw lastError || new Error("Application submission failed");
 }

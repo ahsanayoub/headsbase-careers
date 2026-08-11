@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Apply for an open role at Headsbase Careers."
+    />
+    <title>Apply | Headsbase Careers</title>
+    <link rel="preconnect" href="http://localhost:3000" />
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./apply.css" />
+    <script type="module" src="./js/apply.js" defer></script>
+  </head>
+
+  <body>
+    <a class="skip-link" href="#application-form">Skip to application form</a>
+
+    <header class="site-header">
+      <nav class="nav" aria-label="Primary navigation">
+        <a class="brand" href="./index.html" aria-label="Headsbase careers home">
+          <span class="" aria-hidden="true"><img class="brand-logo" src="htn.svg" alt="Headsbase Talent Network"></span>
+        </a>
+        <div class="nav-actions">
+          <a href="./index.html#jobs">Open roles</a>
+          <a href="mailto:careers@headsbase.com">Contact</a>
+        </div>
+      </nav>
+    </header>
+
+    <main class="apply-grid" id="job-detail" aria-busy="true">
+      <aside class="job-sidebar" id="job-sidebar">
+        <div id="job-summary" class="job-summary" aria-live="polite">
+          Loading job details...
+        </div>
+      </aside>
+
+      <form
+        class="application-card"
+        id="application-form"
+        novalidate
+        autocomplete="on"
+      >
+        <h1 class="apply-title">Apply for this position</h1>
+
+        <!-- 1. Personal -->
+        <fieldset class="apply-section">
+          <legend class="apply-section-title">Personal</legend>
+
+          <div class="apply-grid-sm">
+            <div class="field">
+              <label for="firstName">First Name <span class="required" aria-hidden="true">*</span></label>
+              <input
+                type="text"
+                id="firstName"
+                name="firstName"
+                required
+                autocomplete="given-name"
+              />
+            </div>
+
+            <div class="field">
+              <label for="lastName">Last Name <span class="required" aria-hidden="true">*</span></label>
+              <input
+                type="text"
+                id="lastName"
+                name="lastName"
+                required
+                autocomplete="family-name"
+              />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="email">Email <span class="required" aria-hidden="true">*</span></label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              autocomplete="email"
+            />
+          </div>
+
+          <div class="field">
+            <label for="phone">Phone</label>
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              autocomplete="tel"
+            />
+          </div>
+        </fieldset>
+
+        <!-- 2. Professional -->
+        <fieldset class="apply-section">
+          <legend class="apply-section-title">Professional</legend>
+
+          <div class="field">
+            <label for="company">Current Company</label>
+            <input
+              type="text"
+              id="company"
+              name="company"
+              autocomplete="off"
+            />
+          </div>
+
+          <div class="field">
+            <label for="title">Current Title</label>
+            <input
+              type="text"
+              id="title"
+              name="title"
+              autocomplete="off"
+            />
+          </div>
+
+          <div class="apply-grid-sm">
+            <div class="field">
+              <label for="experience">Years of Experience</label>
+              <input
+                type="number"
+                id="experience"
+                name="experience"
+                min="0"
+                step="1"
+                placeholder="e.g. 5"
+              />
+            </div>
+
+            <div class="field">
+              <label for="salary">Expected Salary</label>
+              <input
+                type="number"
+                id="salary"
+                name="salary"
+                min="0"
+                step="1000"
+                placeholder="e.g. 120000"
+              />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="notice">Notice Period</label>
+            <select id="notice" name="notice">
+              <option value="">Select</option>
+              <option>Immediately</option>
+              <option>2 Weeks</option>
+              <option>1 Month</option>
+              <option>2 Months</option>
+              <option>3 Months</option>
+            </select>
+          </div>
+        </fieldset>
+
+        <!-- 3. Application -->
+        <fieldset class="apply-section">
+          <legend class="apply-section-title">Application</legend>
+
+          <div class="field">
+            <label for="linkedin">LinkedIn</label>
+            <input
+              type="url"
+              id="linkedin"
+              name="linkedin"
+              placeholder="https://linkedin.com/in/..."
+              autocomplete="url"
+            />
+          </div>
+
+          <div class="field">
+            <label for="portfolio">Portfolio or GitHub</label>
+            <input
+              type="url"
+              id="portfolio"
+              name="portfolio"
+              placeholder="https://..."
+              autocomplete="url"
+            />
+          </div>
+
+          <div class="field">
+            <label for="notes">Additional Notes</label>
+            <textarea
+              id="notes"
+              name="notes"
+              rows="6"
+              placeholder="Tell us why you're a great fit for this role."
+            ></textarea>
+          </div>
+        </fieldset>
+
+        <!-- 4. Resume placeholder -->
+        <fieldset class="apply-section" disabled>
+          <legend class="apply-section-title">Resume</legend>
+          <div class="resume-placeholder">
+            <svg class="resume-icon" aria-hidden="true" viewBox="0 0 24 24">
+              <path
+                d="M6 2h12v2H6zM5 8h14v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8z"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+              />
+              <path
+                d="M9 3h6v2H9z"
+                fill="currentColor"
+              />
+            </svg>
+            <p class="resume-text">Resume uploads coming soon.</p>
+          </div>
+        </fieldset>
+
+        <!-- 5. Certification -->
+        <fieldset class="apply-section">
+          <legend class="apply-section-title">Certification</legend>
+          <div class="field">
+            <label for="certifications">Certifications</label>
+            <textarea
+              id="certifications"
+              name="certifications"
+              rows="4"
+              placeholder="List any relevant certifications (e.g. AWS, PMP, CSPO)."
+            ></textarea>
+          </div>
+        </fieldset>
+
+        <!-- 6. Submit button -->
+        <button
+          class="button"
+          type="submit"
+          id="submit-button"
+        >
+          Apply Now
+        </button>
+
+        <p id="form-status" class="form-status" role="alert" aria-live="polite"></p>
+      </form>
+    </main>
+
+    <footer class="site-footer">
+      <p>Headsbase Careers</p>
+      <a href="./index.html#jobs">Back to open roles</a>
+    </footer>
+  </body>
+</html>

@@ -91,21 +91,13 @@ function createHero(job) {
 }
 
 function createApplySection(job) {
-  const applyUrl = textFrom(job.applyUrl, "");
-
-  if (!applyUrl) {
-    return null;
-  }
-
   const section = document.createElement("section");
   section.className = "apply-section";
 
   section.innerHTML = `
     <a
       class="button apply-button"
-      href="${escapeHtml(applyUrl)}"
-      target="_blank"
-      rel="noopener noreferrer"
+      href="./apply.html?id=${encodeURIComponent(job.jobId)}"
     >
       Apply Now
     </a>

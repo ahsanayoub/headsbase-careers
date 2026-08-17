@@ -1,4 +1,4 @@
-const PRODUCTION_ORIGIN = "https://htn-api-production.up.railway.app";
+const PRODUCTION_ORIGIN = "htn-api-production-ab6d.up.railway.app";
 const API_PATH = "/api/jobs";
 const LOCAL_API = `${PRODUCTION_ORIGIN}${API_PATH}`;
 

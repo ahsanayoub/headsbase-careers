@@ -18,3 +18,6 @@
 - Does not expose raw server/database errors to users; shows user-friendly messages instead. Confidence: 0.9
 - Avoids modifying the backend or unrelated files; preserves existing behavior and design. Confidence: 0.85
 - Prefers vanilla JavaScript over introducing frameworks like React. Confidence: 0.85
+- Prefers diagnose-before-modify: when asked to investigate a failure, wants a complete, evidence-backed diagnosis citing exact files/lines that need changing, and will not modify code until the diagnosis is delivered and confirmed. Confidence: 0.95
+- Prefers verifying against the live/deployed production state (probes the actual API endpoints and reads current production source) rather than local repo copies or assumptions. Confidence: 0.9
+- Prefers debugging via systematic, field-by-field comparison of the frontend↔backend contracts (input name/id ↔ JS payload key ↔ backend required field). Confidence: 0.85

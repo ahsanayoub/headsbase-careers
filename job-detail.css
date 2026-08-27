@@ -1,0 +1,130 @@
+.detail-main {
+  width: min(768px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: clamp(3.5rem, 7vw, 4.75rem) 0 4rem;
+}
+
+.job-article {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 10px 30px rgba(22, 36, 30, 0.045);
+}
+
+.detail-hero {
+  padding: 2rem 1.75rem 1.9rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.back-link {
+  display: inline-flex;
+  margin-bottom: 1.45rem;
+  color: var(--accent-strong);
+  font-size: 0.88rem;
+  font-weight: 750;
+}
+
+.back-link:hover,
+.back-link:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.detail-hero .eyebrow {
+  margin-bottom: 0.7rem;
+  font-size: 0.72rem;
+}
+
+.detail-hero h1 {
+  max-width: none;
+  margin: 0 0 1rem;
+  font-size: clamp(3rem, 6.5vw, 3.9rem);
+  line-height: 0.98;
+  letter-spacing: -0.035em;
+}
+
+.detail-meta {
+  margin: 0;
+  gap: 0.45rem;
+}
+
+.detail-meta .pill {
+  padding: 0.25rem 0.58rem;
+  font-size: 0.72rem;
+}
+
+.apply-section {
+  display: flex;
+  align-items: center;
+  min-height: 72px;
+  padding: 1rem 1.75rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.apply-button {
+  min-height: 40px;
+  padding: 0.58rem 0.85rem;
+  font-size: 0.88rem;
+}
+
+.detail-section {
+  padding: 1.75rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.detail-section:last-child {
+  border-bottom: 0;
+}
+
+.detail-section h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.detail-section ul {
+  margin: 0;
+  padding-left: 1.15rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.detail-section li + li {
+  margin-top: 0.6rem;
+}
+
+.skills-grid {
+  gap: 0.45rem;
+}
+
+.skills-grid li {
+  padding: 0.35rem 0.65rem;
+  font-size: 0.82rem;
+}
+
+.detail-main .status-region {
+  margin-bottom: 0.75rem;
+}
+
+@media (max-width: 560px) {
+  .detail-main {
+    width: min(100% - 1rem, 768px);
+    padding-top: 1.5rem;
+  }
+
+  .detail-hero,
+  .detail-section {
+    padding: 1.35rem;
+  }
+
+  .apply-section {
+    padding: 0.85rem 1.35rem;
+  }
+
+  .detail-hero h1 {
+    font-size: clamp(2.35rem, 12vw, 3.1rem);
+  }
+}

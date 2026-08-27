@@ -27,18 +27,13 @@ export async function fetchJobs({
     let lastError;
 
     for (const endpoint of getEndpoints()) {
-        console.log("Trying endpoint:", endpoint);
         try {
             const url = endpoint.startsWith("http")
-            ? new URL(endpoint)
-            : new URL(endpoint, window.location.origin);
-
-            console.log("Fetching:", url.toString());
+                ? new URL(endpoint)
+                : new URL(endpoint, window.location.origin);
 
             url.searchParams.set("page", page);
             url.searchParams.set("limit", limit);
-
-            
 
             if (search) url.searchParams.set("search", search);
             if (company) url.searchParams.set("company", company);
@@ -46,16 +41,14 @@ export async function fetchJobs({
             if (locationType) url.searchParams.set("locationType", locationType);
             if (source) url.searchParams.set("source", source);
             if (posted) url.searchParams.set("posted", posted);
-if (sort) url.searchParams.set("sort", sort);
+            if (sort) url.searchParams.set("sort", sort);
 
             if (remote !== undefined) {
                 url.searchParams.set("remote", remote);
             }
 
             const response = await fetch(url.toString(), {
-                headers: {
-                    Accept: "application/json",
-                },
+                headers: { Accept: "application/json" },
             });
 
             if (!response.ok) {
@@ -86,9 +79,7 @@ export async function findJobById(jobId) {
     for (const endpoint of getEndpoints()) {
         try {
             const response = await fetch(`${endpoint}/${jobId}`, {
-                headers: {
-                    Accept: "application/json",
-                },
+                headers: { Accept: "application/json" },
             });
 
             if (!response.ok) {
@@ -96,7 +87,6 @@ export async function findJobById(jobId) {
                     lastError = new Error("Job not found on this endpoint");
                     continue;
                 }
-            
                 throw new Error(`Job request failed with ${response.status}`);
             }
 
@@ -113,6 +103,58 @@ export async function findJobById(jobId) {
     }
 
     throw lastError || new Error("Job request failed");
+}
+
+export async function uploadResume(file) {
+    const endpoint = `${PRODUCTION_ORIGIN}/api/resumes/upload-url`;
+
+    const urlResponse = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+        },
+        body: JSON.stringify({
+            fileName: file.name,
+            mimeType: file.type,
+            size: file.size,
+        }),
+    });
+
+    const urlPayload = await urlResponse.json().catch(() => ({}));
+
+    if (!urlResponse.ok || !urlPayload.success || !urlPayload.data?.uploadUrl) {
+        const error = new Error(
+            urlPayload.message || `Resume upload URL request failed with ${urlResponse.status}`,
+        );
+        error.status = urlResponse.status;
+        error.payload = urlPayload;
+        throw error;
+    }
+
+    const upload = urlPayload.data;
+
+    const uploadResponse = await fetch(upload.uploadUrl, {
+        method: "PUT",
+        headers: {
+            "Content-Type": file.type,
+        },
+        body: file,
+    });
+
+    if (!uploadResponse.ok) {
+        const error = new Error(`Resume upload failed with ${uploadResponse.status}`);
+        error.status = uploadResponse.status;
+        throw error;
+    }
+
+    return {
+        uploadId: upload.uploadId,
+        storageKey: upload.storageKey,
+        fileName: upload.fileName,
+        mimeType: upload.mimeType,
+        size: upload.size,
+    };
 }
 
 export async function applyApplication(application) {

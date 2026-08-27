@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Join the Headsbase Talent Network by sharing your resume.">
+  <title>Join the Talent Network | Headsbase</title>
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./talent.css">
+  <script type="module" src="./js/talent.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#talent">Skip to talent network</a>
+  <header class="site-header">
+    <nav class="nav" aria-label="Primary navigation">
+      <a class="brand" href="./index.html" aria-label="Headsbase careers home">
+        <span aria-hidden="true"><img class="brand-logo" src="htn.svg" alt="Headsbase Talent Network"></span>
+      </a>
+      <div class="nav-actions">
+        <a href="./index.html#jobs">Open roles</a>
+        <a href="mailto:careers@headsbase.com">Contact</a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="talent" class="talent-main">
+    <section class="talent-hero">
+      <div>
+        <p class="eyebrow">Headsbase Talent Network</p>
+        <h1>Your next opportunity might not be posted yet.</h1>
+        <p class="talent-lede">Share your resume once. We'll keep your profile in mind for relevant opportunities across our network.</p>
+      </div>
+      <div class="talent-steps" aria-label="How it works">
+        <span><b>01</b> Upload</span><span><b>02</b> Review</span><span><b>03</b> Connect</span>
+      </div>
+    </section>
+
+    <section class="talent-card" aria-labelledby="upload-title">
+      <div id="upload-state">
+        <p class="eyebrow">Step 01</p>
+        <h2 id="upload-title">Start with your resume</h2>
+        <p class="muted">We'll read the information we can find and prepare a profile for you to review.</p>
+        <label class="resume-drop" id="resume-drop" for="resume-file">
+          <input id="resume-file" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+          <span class="upload-icon" aria-hidden="true">↑</span>
+          <strong>Drop your resume here</strong>
+          <span>or choose a file</span>
+          <small>PDF, DOC or DOCX · maximum 10 MB</small>
+        </label>
+        <p id="upload-error" class="form-error" role="alert"></p>
+      </div>
+
+      <form id="profile-form" hidden>
+        <div class="profile-heading">
+          <div><p class="eyebrow">Step 02</p><h2>Review your profile</h2></div>
+          <span id="resume-name" class="file-pill"></span>
+        </div>
+        <p class="muted">We've pre-filled what we could find. Please correct anything that's missing or inaccurate.</p>
+
+        <div class="form-grid">
+          <label>First name<input name="firstName" required autocomplete="given-name"></label>
+          <label>Last name<input name="lastName" required autocomplete="family-name"></label>
+          <label>Email<input name="email" type="email" required autocomplete="email"></label>
+          <label>Phone<input name="phone" type="tel" autocomplete="tel"></label>
+          <label>Current title<input name="currentTitle" autocomplete="organization-title"></label>
+          <label>Current company<input name="currentCompany" autocomplete="organization"></label>
+          <label>Location<input name="location" autocomplete="address-level2"></label>
+          <label>Years of experience<input name="yearsExperience" type="number" min="0" max="80" step="1"></label>
+          <label>LinkedIn<input name="linkedinUrl" type="url" placeholder="https://linkedin.com/in/..."></label>
+          <label>GitHub<input name="githubUrl" type="url" placeholder="https://github.com/..."></label>
+          <label>Portfolio / website<input name="portfolioUrl" type="url"></label>
+          <label>Work authorization<input name="workAuthorization"></label>
+        </div>
+
+        <label class="full-field">Professional summary<textarea name="summary" rows="4"></textarea></label>
+        <label class="full-field">Skills <span class="field-hint">Separate with commas</span><textarea name="skills" rows="2" placeholder="Python, financial modeling, GMP, machine learning..."></textarea></label>
+        <label class="full-field">Certifications <span class="field-hint">Separate with commas</span><textarea name="certifications" rows="2"></textarea></label>
+        <label class="full-field">Education <span class="field-hint">Separate with commas</span><textarea name="education" rows="2"></textarea></label>
+
+        <label class="consent"><input name="consent" type="checkbox" required><span>I agree to let Headsbase retain my profile and contact me about relevant career opportunities.</span></label>
+        <p id="submit-error" class="form-error" role="alert"></p>
+        <button id="submit-profile" class="button primary" type="submit">Join the Talent Network <span aria-hidden="true">→</span></button>
+      </form>
+
+      <div id="success-state" hidden class="success-state">
+        <div class="success-mark">✓</div>
+        <p class="eyebrow">You're in</p>
+        <h2>Your profile is now in the Headsbase Talent Network.</h2>
+        <p>We'll reach out when we see an opportunity that looks like a strong fit.</p>
+        <a class="button primary" href="./index.html#jobs">Browse open roles</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>Headsbase Careers</p>
+    <a href="mailto:careers@headsbase.com">careers@headsbase.com</a>
+  </footer>
+</body>
+</html>

@@ -121,12 +121,16 @@ form.addEventListener("submit", async event => {
   submitButton.disabled = true; submitButton.firstChild.textContent = "Joining…";
   const payload = {
     firstName: value("firstName"), lastName: value("lastName"), email: value("email"), phone: value("phone"), location: value("location"),
-    currentTitle: value("currentTitle"), currentCompany: value("currentCompany"), yearsExperience: value("yearsExperience") ? Number(value("yearsExperience")) : undefined,
-    linkedinUrl: value("linkedinUrl"), githubUrl: value("githubUrl"), portfolioUrl: value("portfolioUrl"), workAuthorization: value("workAuthorization"),
-    summary: value("summary"), skills: list(value("skills")), certifications: list(value("certifications")), education: list(value("education")), consent: form.elements.consent.checked, resume,
+    currentCompany: value("currentCompany"), currentTitle: value("currentTitle"),
+    yearsExperience: value("yearsExperience") ? Number(value("yearsExperience")) : 0,
+    linkedinUrl: value("linkedinUrl"), portfolioUrl: value("portfolioUrl"), githubUrl: value("githubUrl"),
+    certifications: value("certifications"),
+    additionalNotes: value("summary"),
+    contactConsent: form.elements.consent.checked,
+    resume,
   };
   try {
-    const response = await fetch(`${API_ORIGIN}/api/candidates`, { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify(payload) });
+    const response = await fetch(`${API_ORIGIN}/api/candidates/talent-network`, { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify(payload) });
     const result = await response.json().catch(() => ({}));
     if (!response.ok || !result.success) throw new Error(result.message || `Submission failed (${response.status}).`);
     form.hidden = true; successState.hidden = false; successState.scrollIntoView({ behavior: "smooth", block: "center" });

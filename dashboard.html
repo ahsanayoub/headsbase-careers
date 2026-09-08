@@ -31,6 +31,8 @@
         <button id="new-search-btn" class="button primary">+ New search</button>
       </header>
 
+      <div id="connection-status" class="connection-status" hidden></div>
+
       <section class="metrics" aria-label="Discovery metrics">
         <article class="metric-card"><span>Searches</span><strong id="metric-searches">—</strong></article>
         <article class="metric-card"><span>Active searches</span><strong id="metric-active">—</strong></article>
@@ -43,7 +45,7 @@
           <div><p class="eyebrow">Saved searches</p><h2 id="searches-title">Discovery searches</h2></div>
           <button id="refresh-searches" class="button secondary">Refresh</button>
         </div>
-        <div id="search-list" class="search-list"></div>
+        <div id="search-list" class="search-list"><div class="empty">Connecting to talent discovery API…</div></div>
       </section>
 
       <section class="panel" id="profiles" aria-labelledby="profiles-title">
@@ -54,7 +56,7 @@
             <button id="refresh-profiles" class="button secondary">Refresh</button>
           </div>
         </div>
-        <div id="profile-list" class="profile-list"></div>
+        <div id="profile-list" class="profile-list"><div class="empty">Waiting for search data…</div></div>
       </section>
 
       <div id="toast" class="toast" role="status" aria-live="polite"></div>

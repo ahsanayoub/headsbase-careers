@@ -16,6 +16,8 @@
         <a class="nav-link active" href="#discovery">Discovery</a>
         <a class="nav-link" href="#searches">Searches</a>
         <a class="nav-link" href="#profiles">Profiles</a>
+        <a class="nav-link" href="#jobs">Jobs</a>
+        <a class="nav-link" href="#applications">Applications</a>
         <a class="nav-link" href="./index.html">Careers site ↗</a>
       </nav>
       <div class="sidebar-footer">HTN Workforce Intelligence</div>
@@ -57,6 +59,22 @@
           </div>
         </div>
         <div id="profile-list" class="profile-list"><div class="empty">Waiting for search data…</div></div>
+      </section>
+
+      <section class="panel" id="jobs" aria-labelledby="jobs-title">
+        <div class="panel-header">
+          <div><p class="eyebrow">Recruiting</p><h2 id="jobs-title">Jobs</h2></div>
+          <div class="toolbar"><input id="job-search" type="search" placeholder="Search jobs" /><button id="refresh-jobs" class="button secondary">Refresh</button></div>
+        </div>
+        <div id="job-list" class="job-list"><div class="empty">Loading jobs…</div></div>
+      </section>
+
+      <section class="panel" id="applications" aria-labelledby="applications-title">
+        <div class="panel-header">
+          <div><p class="eyebrow">Recruiting</p><h2 id="applications-title">Applications</h2></div>
+          <div class="toolbar"><select id="application-job-filter"><option value="">All jobs</option></select><select id="application-status-filter"><option value="">All statuses</option><option>APPLIED</option><option>SCREENING</option><option>INTERVIEW</option><option>OFFER</option><option>ACCEPTED</option><option>REJECTED</option><option>WITHDRAWN</option></select><button id="refresh-applications" class="button secondary">Refresh</button></div>
+        </div>
+        <div id="application-list" class="application-list"><div class="empty">Loading applications…</div></div>
       </section>
 
       <div id="toast" class="toast" role="status" aria-live="polite"></div>

@@ -96,11 +96,32 @@ function renderSearches() {
     created.textContent = "Created " + formatDate(search.createdAt);
     meta.append(status, created);
     const actions = document.createElement("div");
-    const button = document.createElement("button");
-    button.className = "button secondary"; button.type = "button";
-    button.textContent = search.status === "ACTIVE" ? "Run search" : "Activate";
-    button.addEventListener("click", () => search.status === "ACTIVE" ? executeSearch(search.id) : activateSearch(search.id));
-    actions.append(button); item.append(details, actions); return item;
+    actions.className = "search-actions";
+
+    if (search.status !== "ARCHIVED") {
+      const primary = document.createElement("button");
+      primary.className = "button secondary";
+      primary.type = "button";
+      primary.textContent = search.status === "ACTIVE" ? "Run search" : "Activate";
+      primary.addEventListener("click", () => search.status === "ACTIVE" ? executeSearch(search.id) : activateSearch(search.id));
+
+      const close = document.createElement("button");
+      close.className = "button secondary";
+      close.type = "button";
+      close.textContent = "Close search";
+      close.addEventListener("click", () => closeSearch(search.id, search.name));
+
+      actions.append(primary, close);
+    } else {
+      const reopen = document.createElement("button");
+      reopen.className = "button secondary";
+      reopen.type = "button";
+      reopen.textContent = "Reopen";
+      reopen.addEventListener("click", () => reopenSearch(search.id));
+      actions.append(reopen);
+    }
+
+    item.append(details, actions); return item;
   }));
 }
 
@@ -108,6 +129,31 @@ async function activateSearch(id) {
   try {
     await requestDiscovery("/searches/" + id, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "ACTIVE" }) });
     toast("Search activated"); await refreshDiscovery();
+  } catch (error) { toast(error.message); }
+}
+
+async function closeSearch(id, name) {
+  if (!window.confirm('Close "' + name + '"? It will be archived and cannot run until reopened.')) return;
+  try {
+    await requestDiscovery("/searches/" + id, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "ARCHIVED" }),
+    });
+    toast("Search closed");
+    await refreshDiscovery();
+  } catch (error) { toast(error.message); }
+}
+
+async function reopenSearch(id) {
+  try {
+    await requestDiscovery("/searches/" + id, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "ACTIVE" }),
+    });
+    toast("Search reopened");
+    await refreshDiscovery();
   } catch (error) { toast(error.message); }
 }
 

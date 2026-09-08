@@ -85,8 +85,8 @@
     <form method="dialog" id="search-form" class="dialog-card">
       <div class="dialog-header"><div><p class="eyebrow">New discovery</p><h2>Create search</h2></div><button type="button" id="close-dialog" class="icon-button" aria-label="Close">×</button></div>
       <label>Name<input name="name" required placeholder="PEB Designers India" /></label>
-      <label>Roles<input name="roles" placeholder="PEB Designer, Structural Designer" /></label>
-      <label>Skills<input name="skills" placeholder="Tekla, MBS" /></label>
+      <label>Roles<input name="roles" placeholder="PEB Designer, Structural Designer" /><small>Use commas for OR. Example: PEB Designer, Structural Designer</small></label>
+      <label>Skills<input name="skills" placeholder="Cantonese AND English" /><small>Use AND when every term is required; commas create alternatives. Example: Cantonese AND English, Mandarin</small></label>
       <label>Locations<input name="locations" placeholder="India" /></label>
       <label>Companies<input name="companies" placeholder="Company names (optional)" /></label>
       <label>Sources<select name="sources"><option value="LINKEDIN">LinkedIn</option><option value="GITHUB">GitHub</option><option value="LINKEDIN,GITHUB">LinkedIn + GitHub</option></select></label>

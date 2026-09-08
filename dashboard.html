@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>HTN Discovery Dashboard</title>
+  <link rel="stylesheet" href="./dashboard.css" />
+  <script type="module" src="./js/dashboard.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="./index.html"><img src="htn.svg" alt="Headsbase" /></a>
+      <nav aria-label="Dashboard navigation">
+        <a class="nav-link active" href="#discovery">Discovery</a>
+        <a class="nav-link" href="#searches">Searches</a>
+        <a class="nav-link" href="#profiles">Profiles</a>
+        <a class="nav-link" href="./index.html">Careers site ↗</a>
+      </nav>
+      <div class="sidebar-footer">HTN Workforce Intelligence</div>
+    </aside>
+
+    <main class="dashboard-main" id="discovery">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Talent Discovery</p>
+          <h1>Recruiter workspace</h1>
+          <p class="muted">Discover, review and organize public talent signals from search results.</p>
+        </div>
+        <button id="new-search-btn" class="button primary">+ New search</button>
+      </header>
+
+      <section class="metrics" aria-label="Discovery metrics">
+        <article class="metric-card"><span>Searches</span><strong id="metric-searches">—</strong></article>
+        <article class="metric-card"><span>Active searches</span><strong id="metric-active">—</strong></article>
+        <article class="metric-card"><span>Discovered profiles</span><strong id="metric-profiles">—</strong></article>
+        <article class="metric-card"><span>Latest run</span><strong id="metric-latest">—</strong></article>
+      </section>
+
+      <section class="panel" id="searches" aria-labelledby="searches-title">
+        <div class="panel-header">
+          <div><p class="eyebrow">Saved searches</p><h2 id="searches-title">Discovery searches</h2></div>
+          <button id="refresh-searches" class="button secondary">Refresh</button>
+        </div>
+        <div id="search-list" class="search-list"></div>
+      </section>
+
+      <section class="panel" id="profiles" aria-labelledby="profiles-title">
+        <div class="panel-header">
+          <div><p class="eyebrow">Latest results</p><h2 id="profiles-title">Discovered profiles</h2></div>
+          <div class="toolbar">
+            <select id="search-filter"><option value="">All searches</option></select>
+            <button id="refresh-profiles" class="button secondary">Refresh</button>
+          </div>
+        </div>
+        <div id="profile-list" class="profile-list"></div>
+      </section>
+
+      <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    </main>
+  </div>
+
+  <dialog id="search-dialog">
+    <form method="dialog" id="search-form" class="dialog-card">
+      <div class="dialog-header"><div><p class="eyebrow">New discovery</p><h2>Create search</h2></div><button type="button" id="close-dialog" class="icon-button" aria-label="Close">×</button></div>
+      <label>Name<input name="name" required placeholder="PEB Designers India" /></label>
+      <label>Roles<input name="roles" placeholder="PEB Designer, Structural Designer" /></label>
+      <label>Skills<input name="skills" placeholder="Tekla, MBS" /></label>
+      <label>Locations<input name="locations" placeholder="India" /></label>
+      <label>Companies<input name="companies" placeholder="Company names (optional)" /></label>
+      <label>Sources<select name="sources"><option value="LINKEDIN">LinkedIn</option><option value="GITHUB">GitHub</option><option value="LINKEDIN,GITHUB">LinkedIn + GitHub</option></select></label>
+      <div class="dialog-actions"><button type="button" id="cancel-dialog" class="button secondary">Cancel</button><button type="submit" class="button primary">Create search</button></div>
+    </form>
+  </dialog>
+</body>
+</html>

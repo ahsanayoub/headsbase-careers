@@ -1,12 +1,11 @@
-const localHosts = new Set(["localhost", "127.0.0.1", "[::1]"]);
-
 function readRuntimeConfig() {
   const configured = window.__HTN_RECRUITER_PORTAL_CONFIG__;
 
   if (!configured) {
-    return localHosts.has(window.location.hostname)
-      ? { mode: "development", apiOrigin: "" }
-      : { mode: "unconfigured", apiOrigin: "" };
+    // The portal is a labelled demo until the HTN API authentication service is
+    // explicitly configured. This avoids calling any host or accidentally
+    // presenting the current public careers API as recruiter data.
+    return { mode: "development", apiOrigin: "" };
   }
 
   return {

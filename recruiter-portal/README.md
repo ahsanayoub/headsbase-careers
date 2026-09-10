@@ -4,7 +4,7 @@ This folder is a separate, front-end-only recruiter collaboration product. It do
 
 ## Local development
 
-Run `npm run dev:recruiter` from the repository root. On a local host, the portal defaults to a local development adapter with realistic sample data. It does not make a network request, contact the existing Railway API, contact an ATS, or save passwords.
+Run `npm run dev:recruiter` from the repository root. Until public runtime API configuration is provided, the portal defaults to a clearly labelled development adapter with realistic sample data—both locally and in a static preview deployment. It does not make a network request, contact the existing Railway API, contact an ATS, or save passwords.
 
 Visit `http://localhost:5501/#/login`. Any syntactically valid email and password of eight or more characters can be used in development mode. A signup flow starts unverified and guides the user through email confirmation and onboarding. The mock session is limited to the current browser session and contains no password or token.
 
@@ -20,7 +20,7 @@ The portal intentionally does not select or configure an external identity provi
 
 The browser client uses `credentials: "include"` and expects the HTN API to issue and rotate a `Secure`, `HttpOnly`, `SameSite` session cookie. No access token, password, recruiter identifier, or organization identifier is stored in JavaScript or passed as a client-chosen request header.
 
-For a deployed site, inject a public runtime config object before the module bundle loads. Copy the structure in `portal-config.example.js` into the hosting template or a non-committed `portal-config.js`; do not add credentials to it. A non-local portal without runtime API configuration shows a safe configuration error and does not call any endpoint.
+For a deployed production site, inject a public runtime config object before the module bundle loads. Copy the structure in `portal-config.example.js` into the hosting template or a non-committed `portal-config.js`; do not add credentials to it. Without this configuration, the portal remains in the clearly labelled, no-network development demo mode.
 
 ## Required environment configuration
 

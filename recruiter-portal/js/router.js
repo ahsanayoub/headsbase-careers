@@ -2,7 +2,8 @@ const routes = [
   { pattern: "/login", name: "login", public: true },
   { pattern: "/signup", name: "signup", public: true },
   { pattern: "/forgot-password", name: "forgot-password", public: true },
-  { pattern: "/verify-email", name: "verify-email", public: true, requiresSession: true },
+  { pattern: "/reset-password", name: "reset-password", public: true },
+  { pattern: "/verify-email", name: "verify-email", public: true },
   { pattern: "/onboarding", name: "onboarding", public: true, requiresSession: true },
   { pattern: "/dashboard", name: "dashboard", protected: true },
   { pattern: "/jobs", name: "jobs", protected: true },
@@ -19,7 +20,7 @@ function decodeHash() {
 }
 
 function matchRoute(path) {
-  const pathParts = path.split("/").filter(Boolean);
+  const pathParts = path.split("?")[0].split("/").filter(Boolean);
   for (const route of routes) {
     const parts = route.pattern.split("/").filter(Boolean);
     if (parts.length !== pathParts.length) continue;
@@ -35,32 +36,15 @@ function matchRoute(path) {
 }
 
 export class Router {
-  constructor(onRoute) {
-    this.onRoute = onRoute;
-  }
-
-  start() {
-    window.addEventListener("hashchange", () => this.handle());
-    this.handle();
-  }
-
-  handle() {
-    const route = matchRoute(decodeHash());
-    this.onRoute(route);
-  }
-
+  constructor(onRoute) { this.onRoute = onRoute; }
+  start() { window.addEventListener("hashchange", () => this.handle()); this.handle(); }
+  handle() { this.onRoute(matchRoute(decodeHash())); }
   navigate(path, { replace = false } = {}) {
     const hash = `#${path}`;
     if (window.location.hash === hash) return this.handle();
-    if (replace) {
-      window.history.replaceState(null, "", hash);
-      this.handle();
-    } else {
-      window.location.hash = hash;
-    }
+    if (replace) { window.history.replaceState(null, "", hash); this.handle(); }
+    else window.location.hash = hash;
   }
 }
 
-export function routeFor(path) {
-  return matchRoute(path);
-}
+export function routeFor(path) { return matchRoute(path); }

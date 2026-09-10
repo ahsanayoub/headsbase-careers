@@ -66,6 +66,13 @@ function setAuthMessage(message, tone = "error") {
   field.className = `form-message ${tone}`;
 }
 
+async function resendVerification(email) {
+  const normalized = String(email || "").trim();
+  if (!normalized) throw new Error("Enter your account email first, then request a new verification email.");
+  await api.resendVerification(normalized);
+  setAuthMessage("A new verification email has been sent. Please check your inbox and spam folder.", "success");
+}
+
 async function handleAuthForm(form) {
   const data = new FormData(form);
   const submit = form.querySelector('button[type="submit"]');
@@ -73,6 +80,10 @@ async function handleAuthForm(form) {
   try {
     if (form.id === "login-form") {
       const session = await auth.login({ email: data.get("email"), password: data.get("password") });
+      if (!session?.user?.emailVerified) {
+        router.navigate("/verify-email");
+        return;
+      }
       router.navigate(protectedDestination(session));
     } else if (form.id === "signup-form") {
       const session = await auth.signup({ name: data.get("name"), email: data.get("email"), password: data.get("password"), organizationName: data.get("organizationName") });
@@ -113,16 +124,28 @@ root.addEventListener("submit", (event) => {
 });
 
 root.addEventListener("click", async (event) => {
-  const action = event.target.closest("[data-action]")?.dataset.action;
+  const button = event.target.closest("[data-action]");
+  const action = button?.dataset.action;
   if (!action) return;
   if (action === "toggle-account") {
     const menu = document.querySelector("#account-popover"); if (!menu) return;
     menu.hidden = !menu.hidden;
-    document.querySelectorAll('[data-action="toggle-account"]').forEach((button) => button.setAttribute("aria-expanded", String(!menu.hidden)));
+    document.querySelectorAll('[data-action="toggle-account"]').forEach((control) => control.setAttribute("aria-expanded", String(!menu.hidden)));
   }
   if (action === "logout") { await auth.logout(); router.navigate("/login"); }
   if (action === "onboarding-back") { onboardingStep = Math.max(0, onboardingStep - 1); renderAuth({ name: "onboarding" }); }
-  if (action === "resend-verification") setAuthMessage("A new verification email has been requested. Check your inbox if the service accepts the request.", "success");
+  if (action === "resend-verification") {
+    try {
+      const emailField = document.querySelector('#login-form input[name="email"]');
+      const email = button.dataset.email || emailField?.value || auth.session?.user?.email || "";
+      button.disabled = true;
+      await resendVerification(email);
+    } catch (error) {
+      setAuthMessage(error.message || "We could not resend the verification email.");
+    } finally {
+      button.disabled = false;
+    }
+  }
   if (action === "retry") router.handle();
 });
 

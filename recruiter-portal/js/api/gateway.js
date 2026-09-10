@@ -56,9 +56,10 @@ class HtnApiGateway {
 
   logout() { return this.client.request("/auth/logout", { method: "POST", allowUnauthorized: true }); }
   requestPasswordReset(email) { return this.client.request("/auth/forgot-password", { method: "POST", body: { email }, allowUnauthorized: true }); }
+  resendVerification(email) { return this.client.request("/auth/resend-verification", { method: "POST", body: { email }, allowUnauthorized: true }); }
 
   async verifyEmail(token) {
-    return normalizeSession(await this.client.request("/auth/verify-email", { method: "POST", body: { token } }));
+    return normalizeSession(await this.client.request("/auth/verify-email", { method: "POST", body: { token }, allowUnauthorized: true }));
   }
 
   resetPassword(token, password) {
@@ -88,13 +89,7 @@ class HtnApiGateway {
 
   updateSession(patch) {
     const userPatch = patch?.user || {};
-    return this.updateProfile({
-      user: {
-        name: userPatch.name,
-        phone: userPatch.phone,
-        jobTitle: userPatch.jobTitle,
-      },
-    });
+    return this.updateProfile({ user: { name: userPatch.name, phone: userPatch.phone, jobTitle: userPatch.jobTitle } });
   }
 
   completeOnboarding() { return this.getSession(); }

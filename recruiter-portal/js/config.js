@@ -2,10 +2,7 @@ function readRuntimeConfig() {
   const configured = window.__HTN_RECRUITER_PORTAL_CONFIG__;
 
   if (!configured) {
-    // The portal is a labelled demo until the HTN API authentication service is
-    // explicitly configured. This avoids calling any host or accidentally
-    // presenting the current public careers API as recruiter data.
-    return { mode: "development", apiOrigin: "" };
+    return { mode: "api", apiOrigin: "https://htn-api-production-ab6d.up.railway.app" };
   }
 
   return {

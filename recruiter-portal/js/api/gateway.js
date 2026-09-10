@@ -1,99 +1,75 @@
 import { assertApiConfiguration, portalConfig } from "../config.js";
 import { HttpClient } from "./http-client.js";
 
+function normalizeSession(payload) {
+  const value = payload?.data ?? payload;
+  if (!value) return null;
+  if (value.user) return value;
+  return {
+    user: value,
+    organization: {
+      name: value.organizationName || "",
+    },
+    onboardingComplete: Boolean(value.emailVerified),
+  };
+}
+
 class HtnApiGateway {
-  constructor(client) {
-    this.client = client;
+  constructor(client) { this.client = client; }
+
+  async getSession() {
+    const value = await this.client.request("/auth/me", { allowUnauthorized: true });
+    return normalizeSession(value);
   }
 
-  getSession() {
-    return this.client.request("/auth/me", { allowUnauthorized: true });
+  async login(credentials) {
+    return normalizeSession(await this.client.request("/auth/login", { method: "POST", body: credentials, allowUnauthorized: true }));
   }
 
-  login(credentials) {
-    return this.client.request("/auth/login", {
+  async signup(details) {
+    const name = String(details.name || "").trim();
+    const parts = name.split(/\s+/).filter(Boolean);
+    const firstName = parts.shift() || "Recruiter";
+    const lastName = parts.join(" ") || "User";
+    return normalizeSession(await this.client.request("/auth/signup", {
       method: "POST",
-      body: credentials,
+      body: { ...details, firstName, lastName },
       allowUnauthorized: true,
-    });
+    }));
   }
 
-  signup(details) {
-    return this.client.request("/auth/signup", {
-      method: "POST",
-      body: details,
-      allowUnauthorized: true,
-    });
-  }
-
-  logout() {
-    return this.client.request("/auth/logout", {
-      method: "POST",
-      allowUnauthorized: true,
-    });
-  }
+  logout() { return this.client.request("/auth/logout", { method: "POST", allowUnauthorized: true }); }
 
   requestPasswordReset(email) {
-    return this.client.request("/auth/forgot-password", {
-      method: "POST",
-      body: { email },
-      allowUnauthorized: true,
-    });
+    return this.client.request("/auth/forgot-password", { method: "POST", body: { email }, allowUnauthorized: true });
   }
 
-  verifyEmail(code) {
-    return this.client.request("/auth/verify-email", {
-      method: "POST",
-      body: { code },
-    });
+  async verifyEmail(token) {
+    return normalizeSession(await this.client.request("/auth/verify-email", { method: "POST", body: { token } }));
   }
 
   resetPassword(token, password) {
-    return this.client.request("/auth/reset-password", {
-      method: "POST",
-      body: { token, password },
-      allowUnauthorized: true,
-    });
+    return this.client.request("/auth/reset-password", { method: "POST", body: { token, password }, allowUnauthorized: true });
   }
 
-  getDashboard() {
-    return this.client.request("/recruiter/dashboard");
-  }
+  getDashboard() { return this.client.request("/recruiter/dashboard"); }
+  getJobs(filters) { return this.client.request(`/recruiter/jobs${toQuery(filters)}`); }
+  getJob(jobId) { return this.client.request(`/recruiter/jobs/${encodeURIComponent(jobId)}`); }
+  getCandidates(filters) { return this.client.request(`/recruiter/candidates${toQuery(filters)}`); }
+  getSubmissions(filters) { return this.client.request(`/recruiter/submissions${toQuery(filters)}`); }
+  getProfile() { return this.client.request("/recruiter/profile"); }
 
-  getJobs(filters) {
-    return this.client.request(`/recruiter/jobs${toQuery(filters)}`);
-  }
-
-  getJob(jobId) {
-    return this.client.request(`/recruiter/jobs/${encodeURIComponent(jobId)}`);
-  }
-
-  getCandidates(filters) {
-    return this.client.request(`/recruiter/candidates${toQuery(filters)}`);
-  }
-
-  getSubmissions(filters) {
-    return this.client.request(`/recruiter/submissions${toQuery(filters)}`);
-  }
-
-  getProfile() {
-    return this.client.request("/recruiter/profile");
-  }
-
-  updateProfile(patch) {
-    return this.client.request("/recruiter/profile", {
-      method: "PATCH",
-      body: patch,
-    });
+  async updateProfile(patch) {
+    const value = await this.client.request("/recruiter/profile", { method: "PATCH", body: patch });
+    return normalizeSession(value);
   }
 
   updateSession(patch) {
-    return this.updateProfile(patch);
+    const userPatch = patch?.user || {};
+    return this.updateProfile({ firstName: userPatch.name?.split(/\s+/)[0], lastName: userPatch.name?.split(/\s+/).slice(1).join(" "), phone: userPatch.phone });
   }
 
-  completeOnboarding() {
-    return this.getProfile();
-  }
+  completeOnboarding() { return this.getSession(); }
 }
 
 function toQuery(filters = {}) {
@@ -110,6 +86,4 @@ export function createRecruiterGateway() {
   return new HtnApiGateway(new HttpClient({ origin: portalConfig.apiOrigin }));
 }
 
-export function apiValue(payload) {
-  return payload?.data ?? payload;
-}
+export function apiValue(payload) { return payload?.data ?? payload; }

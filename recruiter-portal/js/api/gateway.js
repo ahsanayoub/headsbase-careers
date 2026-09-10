@@ -1,16 +1,32 @@
 import { assertApiConfiguration, portalConfig } from "../config.js";
 import { HttpClient } from "./http-client.js";
 
+function normalizeUser(value) {
+  if (!value) return null;
+  return {
+    ...value,
+    name: value.name || [value.firstName, value.lastName].filter(Boolean).join(" ").trim(),
+  };
+}
+
 function normalizeSession(payload) {
+  const value = payload?.data ?? payload;
+  if (!value) return null;
+  if (value.user) return { ...value, user: normalizeUser(value.user) };
+  return {
+    user: normalizeUser(value),
+    organization: { name: value.organizationName || "" },
+    onboardingComplete: Boolean(value.emailVerified),
+  };
+}
+
+function normalizeProfile(payload) {
   const value = payload?.data ?? payload;
   if (!value) return null;
   if (value.user) return value;
   return {
-    user: value,
-    organization: {
-      name: value.organizationName || "",
-    },
-    onboardingComplete: Boolean(value.emailVerified),
+    user: normalizeUser(value),
+    organization: { name: value.organizationName || "" },
   };
 }
 
@@ -39,10 +55,7 @@ class HtnApiGateway {
   }
 
   logout() { return this.client.request("/auth/logout", { method: "POST", allowUnauthorized: true }); }
-
-  requestPasswordReset(email) {
-    return this.client.request("/auth/forgot-password", { method: "POST", body: { email }, allowUnauthorized: true });
-  }
+  requestPasswordReset(email) { return this.client.request("/auth/forgot-password", { method: "POST", body: { email }, allowUnauthorized: true }); }
 
   async verifyEmail(token) {
     return normalizeSession(await this.client.request("/auth/verify-email", { method: "POST", body: { token } }));
@@ -57,16 +70,31 @@ class HtnApiGateway {
   getJob(jobId) { return this.client.request(`/recruiter/jobs/${encodeURIComponent(jobId)}`); }
   getCandidates(filters) { return this.client.request(`/recruiter/candidates${toQuery(filters)}`); }
   getSubmissions(filters) { return this.client.request(`/recruiter/submissions${toQuery(filters)}`); }
-  getProfile() { return this.client.request("/recruiter/profile"); }
+  async getProfile() { return normalizeProfile(await this.client.request("/recruiter/profile")); }
 
   async updateProfile(patch) {
-    const value = await this.client.request("/recruiter/profile", { method: "PATCH", body: patch });
+    const userPatch = patch?.user || patch || {};
+    const nameParts = String(userPatch.name || "").trim().split(/\s+/).filter(Boolean);
+    const body = {};
+    if (nameParts.length) {
+      body.firstName = nameParts.shift();
+      body.lastName = nameParts.join(" ") || "User";
+    }
+    if (userPatch.phone !== undefined) body.phone = userPatch.phone;
+    if (userPatch.jobTitle !== undefined) body.jobTitle = userPatch.jobTitle;
+    const value = await this.client.request("/recruiter/profile", { method: "PATCH", body });
     return normalizeSession(value);
   }
 
   updateSession(patch) {
     const userPatch = patch?.user || {};
-    return this.updateProfile({ firstName: userPatch.name?.split(/\s+/)[0], lastName: userPatch.name?.split(/\s+/).slice(1).join(" "), phone: userPatch.phone });
+    return this.updateProfile({
+      user: {
+        name: userPatch.name,
+        phone: userPatch.phone,
+        jobTitle: userPatch.jobTitle,
+      },
+    });
   }
 
   completeOnboarding() { return this.getSession(); }

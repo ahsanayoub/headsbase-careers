@@ -17,6 +17,17 @@ function normalizeProfile(payload) {
   if (value.user) return value;
   return { user: normalizeUser(value), organization: { name: value.organizationName || "" } };
 }
+function normalizeDashboard(payload) {
+  const value = payload?.data ?? payload ?? {};
+  const raw = value.metrics || {};
+  const metrics = Array.isArray(raw) ? raw : [
+    { label: "Active jobs", value: Number(raw.activeJobs || 0), detail: "Jobs currently available to you" },
+    { label: "Applications", value: Number(raw.applications || 0), detail: "Applications across accessible jobs" },
+    { label: "Candidates", value: Number(raw.candidates || 0), detail: "Candidates represented in submissions" },
+    { label: "Interviews", value: Number(raw.interviews || 0), detail: "Applications currently at interview stage" },
+  ];
+  return { ...value, metrics, jobs: Array.isArray(value.jobs) ? value.jobs : [], activity: Array.isArray(value.activity) ? value.activity : [] };
+}
 
 class HtnApiGateway {
   constructor(client) { this.client = client; }
@@ -36,7 +47,7 @@ class HtnApiGateway {
   resendVerification(email) { return this.client.request("/auth/resend-verification", { method: "POST", body: { email }, allowUnauthorized: true }); }
   async verifyEmail(token) { return normalizeSession(await this.client.request("/auth/verify-email", { method: "POST", body: { token }, allowUnauthorized: true })); }
   resetPassword(token, password) { return this.client.request("/auth/reset-password", { method: "POST", body: { token, password }, allowUnauthorized: true }); }
-  getDashboard() { return this.client.request("/recruiter/dashboard"); }
+  async getDashboard() { return normalizeDashboard(await this.client.request("/recruiter/dashboard")); }
   getJobs(filters) { return this.client.request(`/recruiter/jobs${toQuery(filters)}`); }
   getJob(jobId) { return this.client.request(`/recruiter/jobs/${encodeURIComponent(jobId)}`); }
   getCandidates(filters) { return this.client.request(`/recruiter/candidates${toQuery(filters)}`); }

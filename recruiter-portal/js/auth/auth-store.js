@@ -82,5 +82,5 @@ export class AuthStore {
 }
 
 export function isWorkspaceReady(session) {
-  return Boolean(session?.user?.emailVerified && session?.onboardingComplete);
+  return Boolean(session?.user?.emailVerified);
 }

@@ -4,7 +4,8 @@
   "description": "Headsbase Careers Website",
   "main": "index.js",
   "scripts": {
-    "dev": "live-server --port=5500 --open=./index.html"
+    "dev": "live-server --port=5500 --open=./index.html",
+    "dev:recruiter": "live-server recruiter-portal --port=5501 --open=./index.html"
   },
   "keywords": [],
   "author": "",

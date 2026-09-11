@@ -85,7 +85,7 @@ class HtnApiGateway {
   resetPassword(token, password) { return this.client.request("/auth/reset-password", { method: "POST", body: { token, password }, allowUnauthorized: true }); }
   async getDashboard() { return normalizeDashboard(await this.client.request("/recruiter/dashboard")); }
   async getJobs(filters) { return normalizeJobs(await this.client.request(`/recruiter/jobs${toQuery(filters)}`)); }
-  async getJob(jobId) { return normalizeJob((await this.client.request(`/recruiter/jobs/${encodeURIComponent(jobId)}`))?.data); }
+  async getJob(jobId) { return normalizeJob(await this.client.request(`/recruiter/jobs/${encodeURIComponent(jobId)}`)); }
   async getCandidates(filters) { return normalizeCandidates(await this.client.request(`/recruiter/candidates${toQuery(filters)}`)); }
   async getSubmissions(filters) { return normalizeSubmissions(await this.client.request(`/recruiter/submissions${toQuery(filters)}`)); }
   async getProfile() { return normalizeProfile(await this.client.request("/recruiter/profile")); }

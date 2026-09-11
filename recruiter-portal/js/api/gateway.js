@@ -28,11 +28,30 @@ function normalizeDashboard(payload) {
   ];
   return { ...value, metrics, jobs: Array.isArray(value.jobs) ? value.jobs : [], activity: Array.isArray(value.activity) ? value.activity : [] };
 }
+function normalizeJob(job) {
+  if (!job) return null;
+  return {
+    ...job,
+    location: job.location || [job.city, job.country].filter(Boolean).join(", ") || "Not specified",
+    employmentType: job.employmentType || "Not specified",
+    priority: job.priority || "Standard",
+    assignedAt: job.assignedAt || job.postedAt || job.createdAt,
+    candidatesSubmitted: Number(job.candidatesSubmitted ?? job.applicationCount ?? 0),
+    clientVisibility: job.clientVisibility || "Shared assignment",
+    experienceLevel: job.experienceLevel || "Not specified",
+    compensation: job.compensation || "Not specified",
+    requiredSkills: Array.isArray(job.requiredSkills) ? job.requiredSkills : [],
+    preferredSkills: Array.isArray(job.preferredSkills) ? job.preferredSkills : [],
+    instructions: job.instructions || "Follow the submission expectations provided by Headsbase.",
+    expectations: job.expectations || "Submit qualified candidates through the approved Headsbase workflow.",
+    description: job.description || "No job description provided.",
+  };
+}
 function normalizeJobs(payload) {
   const value = payload?.data ?? payload;
   const items = Array.isArray(value) ? value : Array.isArray(value?.items) ? value.items : [];
   const pagination = Array.isArray(value) ? { page: 1, limit: items.length || 20, total: items.length, totalPages: items.length ? 1 : 0, hasMore: false } : (value?.pagination || {});
-  return { items: items.map((job) => ({ ...job, location: job.location || [job.city, job.country].filter(Boolean).join(", ") || "Not specified", employmentType: job.employmentType || "Not specified", priority: job.priority || "Standard", assignedAt: job.assignedAt || job.postedAt || job.createdAt, candidatesSubmitted: Number(job.candidatesSubmitted ?? job.applicationCount ?? 0), clientVisibility: job.clientVisibility || "Shared assignment", experienceLevel: job.experienceLevel || "Not specified", compensation: job.compensation || "Not specified", requiredSkills: Array.isArray(job.requiredSkills) ? job.requiredSkills : [], preferredSkills: Array.isArray(job.preferredSkills) ? job.preferredSkills : [], instructions: job.instructions || "Follow the submission expectations provided by Headsbase.", expectations: job.expectations || "Submit qualified candidates through the approved Headsbase workflow." })), pagination };
+  return { items: items.map(normalizeJob), pagination };
 }
 function normalizeCandidates(payload) {
   const value = payload?.data ?? payload;
@@ -66,7 +85,7 @@ class HtnApiGateway {
   resetPassword(token, password) { return this.client.request("/auth/reset-password", { method: "POST", body: { token, password }, allowUnauthorized: true }); }
   async getDashboard() { return normalizeDashboard(await this.client.request("/recruiter/dashboard")); }
   async getJobs(filters) { return normalizeJobs(await this.client.request(`/recruiter/jobs${toQuery(filters)}`)); }
-  getJob(jobId) { return this.client.request(`/recruiter/jobs/${encodeURIComponent(jobId)}`); }
+  async getJob(jobId) { return normalizeJob((await this.client.request(`/recruiter/jobs/${encodeURIComponent(jobId)}`))?.data); }
   async getCandidates(filters) { return normalizeCandidates(await this.client.request(`/recruiter/candidates${toQuery(filters)}`)); }
   async getSubmissions(filters) { return normalizeSubmissions(await this.client.request(`/recruiter/submissions${toQuery(filters)}`)); }
   async getProfile() { return normalizeProfile(await this.client.request("/recruiter/profile")); }

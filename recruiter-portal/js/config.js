@@ -2,7 +2,7 @@ function readRuntimeConfig() {
   const configured = window.__HTN_RECRUITER_PORTAL_CONFIG__;
 
   if (!configured) {
-    return { mode: "api", apiOrigin: "https://htn-api-production-ab6d.up.railway.app" };
+    return { mode: "api", apiOrigin: "https://htn-api-production-2a68.up.railway.app" };
   }
 
   return {

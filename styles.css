@@ -724,6 +724,16 @@ h1 {
   margin-top: 0.55rem;
 }
 
+.detail-prose p {
+  margin: 0;
+  line-height: 1.65;
+  color: inherit;
+}
+
+.detail-prose p + p {
+  margin-top: 0.9rem;
+}
+
 .skills-grid {
   display: flex;
   flex-wrap: wrap;

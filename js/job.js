@@ -4,6 +4,7 @@ import {
   formatDate,
   normalizeList,
   renderDetailList,
+  renderDetailProse,
   textFrom,
 } from "./render.js";
 
@@ -65,6 +66,7 @@ function renderJob(job) {
   article.replaceChildren(createHero(job));
   const sections = [
     createApplySection(job),
+    renderDetailProse("Job description", job.description),
     renderDetailList("Responsibilities", job.responsibilities),
     renderDetailList("Requirements", job.requirements),
     renderDetailList("Preferred qualifications", job.preferredQualifications),

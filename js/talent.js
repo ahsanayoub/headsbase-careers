@@ -1,4 +1,4 @@
-const API_ORIGIN = "https://htn-api-production-2a68.up.railway.app";
+const API_ORIGIN = "https://htn-api-production-c3a4.up.railway.app";
 const MAX_SIZE = 10 * 1024 * 1024;
 
 const fileInput = document.querySelector("#resume-file");

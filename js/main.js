@@ -1,6 +1,6 @@
-console.log("MAIN.JS VERSION - JULY 30", new Date().toISOString());
-import { fetchJobs } from "./api.js";
-import { createJobCard, createSkeletonCards, createState, textFrom } from "./render.js";
+console.log("MAIN.JS VERSION - 2026-09-24-c3a4", new Date().toISOString());
+import { fetchJobs } from "./api.js?v=20260924c3a4";
+import { createJobCard, createSkeletonCards, createState, textFrom } from "./render.js?v=20260924c3a4";
 
 const grid = document.querySelector("#jobs-grid");
 const count = document.querySelector("#jobs-count");
@@ -21,6 +21,7 @@ let currentPage = 1;
 
 let hasMore = false;
 let isLoading = false;
+let totalJobs = 0;
 
 const PAGE_SIZE = 20;
 
@@ -111,6 +112,10 @@ async function loadJobs(page = 1) {
 
     currentPage = result.pagination.page;
     hasMore = result.pagination.hasMore;
+    totalJobs =
+      typeof result.pagination.total === "number"
+        ? result.pagination.total
+        : result.jobs.length;
 
     jobs =
       page === 1
@@ -119,6 +124,10 @@ async function loadJobs(page = 1) {
 
     populateFilterOptions();
     renderJobs();
+
+    // #region agent log
+    fetch('http://127.0.0.1:7258/ingest/6883a01e-d9ce-447b-b0f2-74d8d2adaca4',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eed22f'},body:JSON.stringify({sessionId:'eed22f',runId:'cache-bust',hypothesisId:'H4-count',location:'main.js:loadJobs',message:'jobs-count after fetch',data:{page,totalJobs,loaded:jobs.length,hasMore,countText:formatCount(totalJobs,hasActiveFilters(getFilterState()))},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
 
     statusRegion.textContent = "";
   } catch (error) {
@@ -150,7 +159,8 @@ function renderJobs() {
   const visibleJobs = jobs;
 
   renderActiveFilters(state);
-  count.textContent = formatCount(visibleJobs.length, hasActiveFilters(state));
+  // Use API total (not only loaded cards) so the count matches careers inventory.
+  count.textContent = formatCount(totalJobs || visibleJobs.length, hasActiveFilters(state));
 
   if (!visibleJobs.length) {
     grid.replaceChildren(

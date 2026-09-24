@@ -1,4 +1,4 @@
-const API_ORIGIN = "https://htn-api-production-c3a4.up.railway.app";
+const API_ORIGIN = "https://htn-api-production-2a68.up.railway.app";
 const MAX_SIZE = 10 * 1024 * 1024;
 
 const fileInput = document.querySelector("#resume-file");
@@ -29,6 +29,9 @@ async function uploadResume(file) {
     method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify({ fileName: file.name, mimeType: file.type || "application/pdf", size: file.size }),
   });
+  // #region agent log
+  fetch('http://127.0.0.1:7258/ingest/6883a01e-d9ce-447b-b0f2-74d8d2adaca4',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eed22f'},body:JSON.stringify({sessionId:'eed22f',runId:'talent-2a68',hypothesisId:'H-talent',location:'talent.js:uploadResume',message:'talent upload-url response',data:{apiOrigin:API_ORIGIN,status:response.status,ok:response.ok},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
   const payload = await response.json().catch(() => ({}));
   if (!response.ok || !payload.success) throw new Error(payload.message || "We couldn't prepare your resume upload.");
   const upload = payload.data;

@@ -1,4 +1,4 @@
-import { assertApiConfiguration, portalConfig } from "../config.js";
+import { assertApiConfiguration, portalConfig } from "../config.js?v=20260924r2a68";
 import { HttpClient } from "./http-client.js";
 
 function normalizeUser(value) { if (!value) return null; return { ...value, name: value.name || [value.firstName, value.lastName].filter(Boolean).join(" ").trim() }; }

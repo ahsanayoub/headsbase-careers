@@ -5,5 +5,6 @@
 */
 window.__HTN_RECRUITER_PORTAL_CONFIG__ = {
   mode: "api",
-  apiOrigin: "https://your-htn-api.example",
+  // Recruiter service only — not careers/Micro1 (c3a4). Portal JS ignores overrides of this host.
+  apiOrigin: "https://htn-api-production-2a68.up.railway.app",
 };

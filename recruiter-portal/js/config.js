@@ -1,13 +1,14 @@
+/** Recruiter portal API — separate from careers/Micro1 (c3a4). Do not change. */
+export const RECRUITER_API_ORIGIN = "https://htn-api-production-2a68.up.railway.app";
+
 function readRuntimeConfig() {
   const configured = window.__HTN_RECRUITER_PORTAL_CONFIG__;
 
-  if (!configured) {
-    return { mode: "api", apiOrigin: "https://htn-api-production-2a68.up.railway.app" };
-  }
-
+  // Always use the recruiter Railway service. Ignore alternate origins so
+  // careers cutovers (c3a4) or stale portal-config cannot break login.
   return {
-    mode: configured.mode === "api" ? "api" : "development",
-    apiOrigin: String(configured.apiOrigin || "").replace(/\/$/, ""),
+    mode: configured?.mode === "development" ? "development" : "api",
+    apiOrigin: RECRUITER_API_ORIGIN,
   };
 }
 

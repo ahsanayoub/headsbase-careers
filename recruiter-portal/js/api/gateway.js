@@ -1,5 +1,5 @@
-import { assertApiConfiguration, portalConfig } from "../config.js?v=20260924r2a68";
-import { HttpClient } from "./http-client.js";
+import { assertApiConfiguration, portalConfig } from "../config.js?v=20260924r2a68c";
+import { HttpClient } from "./http-client.js?v=20260924r2a68c";
 
 function normalizeUser(value) { if (!value) return null; return { ...value, name: value.name || [value.firstName, value.lastName].filter(Boolean).join(" ").trim() }; }
 function normalizeSession(payload) { const value = payload?.data ?? payload; if (!value) return null; if (value.user) return { ...value, user: normalizeUser(value.user) }; return { user: normalizeUser(value), organization: { name: value.organizationName || "" }, onboardingComplete: Boolean(value.emailVerified) }; }
@@ -35,5 +35,11 @@ class HtnApiGateway {
   async submitCandidate(payload) { return this.client.request("/recruiter/submissions", { method: "POST", body: payload }); }
 }
 function toQuery(filters = {}) { const query = new URLSearchParams(); Object.entries(filters).forEach(([key, value]) => { if (value !== undefined && value !== null && value !== "") query.set(key, value); }); const value = query.toString(); return value ? `?${value}` : ""; }
-export function createRecruiterGateway() { assertApiConfiguration(); return new HtnApiGateway(new HttpClient({ origin: portalConfig.apiOrigin })); }
+export function createRecruiterGateway() {
+  assertApiConfiguration();
+  // #region agent log
+  fetch('http://127.0.0.1:7258/ingest/6883a01e-d9ce-447b-b0f2-74d8d2adaca4',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eed22f'},body:JSON.stringify({sessionId:'eed22f',runId:'recruiter-2a68-lock',hypothesisId:'H-cache',location:'gateway.js:createRecruiterGateway',message:'recruiter portal api origin',data:{apiOrigin:portalConfig.apiOrigin},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
+  return new HtnApiGateway(new HttpClient({ origin: portalConfig.apiOrigin }));
+}
 export function apiValue(payload) { return payload?.data ?? payload; }

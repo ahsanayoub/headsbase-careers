@@ -4,6 +4,7 @@ import {
   formatDate,
   normalizeList,
   renderDetailList,
+  renderDetailProse,
   textFrom,
 } from "./render.js";
 
@@ -63,9 +64,21 @@ function renderJob(job) {
   document.title = `${textFrom(job.title, "Job Details")} | Headsbase Careers`;
   article.setAttribute("aria-busy", "false");
   article.replaceChildren(createHero(job));
+
+  const description = textFrom(job.description, "");
+  const responsibilities = textFrom(job.responsibilities, "");
+  // Avoid duplicating when API temporarily mirrors description into responsibilities
+  // for older site builds that only rendered responsibilities.
+  const showResponsibilities =
+    responsibilities &&
+    responsibilities.trim() !== description.trim();
+
   const sections = [
     createApplySection(job),
-    renderDetailList("Responsibilities", job.responsibilities),
+    renderDetailProse("Job description", job.description),
+    showResponsibilities
+      ? renderDetailList("Responsibilities", job.responsibilities)
+      : null,
     renderDetailList("Requirements", job.requirements),
     renderDetailList("Preferred qualifications", job.preferredQualifications),
     createSkillsSection(job),

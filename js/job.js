@@ -1,4 +1,4 @@
-import { findJobById } from "./api.js?v=20260924c3a4";
+import { findJobById } from "./api.js?v=20260924clean";
 import {
   escapeHtml,
   formatDate,

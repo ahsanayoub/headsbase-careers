@@ -59,10 +59,6 @@ export async function fetchJobs({
                 throw new Error("Jobs response was not in the expected format");
             }
 
-            // #region agent log
-            fetch('http://127.0.0.1:7258/ingest/6883a01e-d9ce-447b-b0f2-74d8d2adaca4',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eed22f'},body:JSON.stringify({sessionId:'eed22f',runId:'cache-bust',hypothesisId:'H1-cache',location:'api.js:fetchJobs',message:'careers jobs fetch',data:{endpoint:url.toString(),origin:PRODUCTION_ORIGIN,total:payload.pagination?.total,page:payload.pagination?.page,count:(payload.data||[]).length},timestamp:Date.now()})}).catch(()=>{});
-            // #endregion
-
             return {
                 jobs: payload.data,
                 pagination: payload.pagination,

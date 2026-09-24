@@ -1,15 +1,13 @@
 const PRODUCTION_ORIGIN = "https://htn-api-production-c3a4.up.railway.app";
 const API_PATH = "/api/jobs";
-const LOCAL_API = `${PRODUCTION_ORIGIN}${API_PATH}`;
 
 function getEndpoints(path = API_PATH) {
-    const endpoints = [path];
+    const absolute = `${PRODUCTION_ORIGIN}${path}`;
+    const host = typeof window !== "undefined" ? window.location.hostname : "";
+    const isLocal = host === "localhost" || host === "127.0.0.1";
 
-    if (window.location.origin !== LOCAL_API) {
-        endpoints.push(`${PRODUCTION_ORIGIN}${path}`);
-    }
-
-    return endpoints;
+    // Production: only the ATS-only API. Local: try relative first, then absolute.
+    return isLocal ? [path, absolute] : [absolute];
 }
 
 export async function fetchJobs({
@@ -60,6 +58,10 @@ export async function fetchJobs({
             if (!payload.success || !Array.isArray(payload.data)) {
                 throw new Error("Jobs response was not in the expected format");
             }
+
+            // #region agent log
+            fetch('http://127.0.0.1:7258/ingest/6883a01e-d9ce-447b-b0f2-74d8d2adaca4',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eed22f'},body:JSON.stringify({sessionId:'eed22f',runId:'cache-bust',hypothesisId:'H1-cache',location:'api.js:fetchJobs',message:'careers jobs fetch',data:{endpoint:url.toString(),origin:PRODUCTION_ORIGIN,total:payload.pagination?.total,page:payload.pagination?.page,count:(payload.data||[]).length},timestamp:Date.now()})}).catch(()=>{});
+            // #endregion
 
             return {
                 jobs: payload.data,

@@ -22,7 +22,36 @@ export function normalizeList(value) {
   }
 
   if (typeof value === "string") {
-    return value
+    const trimmed = value.trim();
+    if (!trimmed) return [];
+
+    // ATS sometimes published requirements as a JSON skills blob.
+    if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (parsed && typeof parsed === "object") {
+          const skills = [
+            ...(Array.isArray(parsed.requiredSkills) ? parsed.requiredSkills : []),
+            ...(Array.isArray(parsed.parsedSkills) ? parsed.parsedSkills : []),
+            ...(Array.isArray(parsed.skills) ? parsed.skills : []),
+          ]
+            .filter((item) => typeof item === "string" && item.trim())
+            .flatMap((item) =>
+              /\s{2,}/.test(item) ? item.split(/\s{2,}/) : [item],
+            )
+            .map((item) => item.replace(/\s+/g, " ").trim())
+            .filter(Boolean);
+
+          if (skills.length) {
+            return [...new Set(skills)];
+          }
+        }
+      } catch {
+        // fall through to plain-text splitting
+      }
+    }
+
+    return trimmed
       .split(/\n|•|;/)
       .map((item) => item.trim())
       .filter(Boolean);
@@ -131,6 +160,31 @@ export function renderDetailList(title, items) {
         .map((item) => `<li>${escapeHtml(item)}</li>`)
         .join("")}
     </ul>
+  `;
+
+  return section;
+}
+
+/** Renders long-form job description as paragraphs (not a bullet list). */
+export function renderDetailProse(title, value) {
+  if (value == null) return null;
+
+  const text = String(value).trim();
+  if (!text) return null;
+
+  const paragraphs = text
+    .split(/\n{2,}/)
+    .map((part) => part.replace(/\s*\n\s*/g, " ").trim())
+    .filter(Boolean);
+
+  const blocks = paragraphs.length > 0 ? paragraphs : [text];
+
+  const section = document.createElement("section");
+  section.className = "detail-section detail-prose";
+
+  section.innerHTML = `
+    <h2>${escapeHtml(title)}</h2>
+    ${blocks.map((p) => `<p>${escapeHtml(p)}</p>`).join("")}
   `;
 
   return section;

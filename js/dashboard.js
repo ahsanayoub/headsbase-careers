@@ -1,4 +1,4 @@
-const DEFAULT_PRODUCTION_API = "https://htn-api-production-ab6d.up.railway.app";
+const DEFAULT_PRODUCTION_API = "https://api.headsbaseinc.com";
 const ORGANIZATION_ID = "0e6f5b36-98aa-4d84-a142-b48c6dd3eb1f";
 
 function resolveApiOrigin() {

@@ -1,0 +1,20 @@
+/js/*
+  Cache-Control: public, max-age=60, must-revalidate
+
+/recruiter-portal/js/*
+  Cache-Control: public, max-age=60, must-revalidate
+
+/*.js
+  Cache-Control: public, max-age=60, must-revalidate
+
+/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+/recruiter-portal/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/recruiter-portal/*.html
+  Cache-Control: public, max-age=0, must-revalidate

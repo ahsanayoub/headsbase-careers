@@ -1,5 +1,5 @@
 import { escapeHtml, icon } from "../components/ui.js";
-import { isDevelopmentMode } from "../config.js";
+import { isDevelopmentMode } from "../config.js?v=20260924r2a68c";
 
 function authFrame({ eyebrow, title, copy, body, footer = "" }) {
   return `<div class="auth-shell">

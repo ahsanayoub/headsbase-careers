@@ -1,15 +1,13 @@
 const PRODUCTION_ORIGIN = "https://api.headsbaseinc.com";
 const API_PATH = "/api/jobs";
-const LOCAL_API = `${PRODUCTION_ORIGIN}${API_PATH}`;
 
 function getEndpoints(path = API_PATH) {
-    const endpoints = [path];
+    const absolute = `${PRODUCTION_ORIGIN}${path}`;
+    const host = typeof window !== "undefined" ? window.location.hostname : "";
+    const isLocal = host === "localhost" || host === "127.0.0.1";
 
-    if (window.location.origin !== LOCAL_API) {
-        endpoints.push(`${PRODUCTION_ORIGIN}${path}`);
-    }
-
-    return endpoints;
+    // Production: only the Lightsail API. Local: try relative first, then absolute.
+    return isLocal ? [path, absolute] : [absolute];
 }
 
 export async function fetchJobs({

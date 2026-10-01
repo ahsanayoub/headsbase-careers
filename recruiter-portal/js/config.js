@@ -1,13 +1,20 @@
+export const RECRUITER_API_ORIGIN = "https://api.headsbaseinc.com";
+
 function readRuntimeConfig() {
   const configured = window.__HTN_RECRUITER_PORTAL_CONFIG__;
 
   if (!configured) {
-    return { mode: "api", apiOrigin: "https://api.headsbaseinc.com" };
+    return {
+      mode: "api",
+      apiOrigin: RECRUITER_API_ORIGIN,
+    };
   }
 
   return {
     mode: configured.mode === "api" ? "api" : "development",
-    apiOrigin: String(configured.apiOrigin || "").replace(/\/$/, ""),
+    apiOrigin: String(
+      configured.apiOrigin || RECRUITER_API_ORIGIN
+    ).replace(/\/$/, ""),
   };
 }
 

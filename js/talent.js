@@ -29,6 +29,7 @@ async function uploadResume(file) {
     method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify({ fileName: file.name, mimeType: file.type || "application/pdf", size: file.size }),
   });
+  
   const payload = await response.json().catch(() => ({}));
   if (!response.ok || !payload.success) throw new Error(payload.message || "We couldn't prepare your resume upload.");
   const upload = payload.data;

@@ -35,6 +35,19 @@ class HtnApiGateway {
   async submitCandidate(payload) { return this.client.request("/recruiter/submissions", { method: "POST", body: payload }); }
 }
 
+function toQuery(filters = {}) {
+  const query = new URLSearchParams();
+
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      query.set(key, value);
+    }
+  });
+
+  const value = query.toString();
+  return value ? `?${value}` : "";
+}
+
 export function createRecruiterGateway() {
   assertApiConfiguration();
   return new HtnApiGateway(new HttpClient({ origin: portalConfig.apiOrigin }));

@@ -26,8 +26,23 @@ export function escapeHtml(value = "") {
 }
 
 export function formatDate(value, options = { month: "short", day: "numeric", year: "numeric" }) {
-  if (!value) return "—";
-  return new Intl.DateTimeFormat(undefined, options).format(new Date(`${value}T12:00:00`));
+  if (value == null || value === "") return "—";
+
+  let date;
+  if (value instanceof Date) {
+    date = value;
+  } else {
+    const raw = String(value).trim();
+    if (!raw) return "—";
+    // Date-only (YYYY-MM-DD): keep midday local parse to avoid timezone day-shift.
+    // ISO datetimes already include a time component — do not append T12:00:00.
+    date = /^\d{4}-\d{2}-\d{2}$/.test(raw)
+      ? new Date(`${raw}T12:00:00`)
+      : new Date(raw);
+  }
+
+  if (Number.isNaN(date.getTime())) return "—";
+  return new Intl.DateTimeFormat(undefined, options).format(date);
 }
 
 export function initials(name = "") {

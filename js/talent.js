@@ -11,6 +11,30 @@ const submitError = document.querySelector("#submit-error");
 const resumeName = document.querySelector("#resume-name");
 const submitButton = document.querySelector("#submit-profile");
 
+function trackAnalyticsEvent(eventName, parameters = {}) {
+  if (typeof window.gtag === "function") {
+    window.gtag("event", eventName, parameters);
+  }
+}
+
+// Measure intent to join the Talent Network without sending form fields or other PII.
+submitButton?.addEventListener("click", () => {
+  trackAnalyticsEvent("application_cta_click", {
+    cta_name: "join_talent_network",
+    cta_location: "profile_form",
+  });
+});
+
+// Track navigation to open roles from this page, including the success state.
+document.querySelectorAll('a[href="./index.html#jobs"]').forEach(link => {
+  link.addEventListener("click", () => {
+    trackAnalyticsEvent("open_roles_cta_click", {
+      cta_name: "browse_open_roles",
+      cta_location: link.closest("#success-state") ? "success_state" : "page_navigation",
+    });
+  });
+});
+
 let resume = null;
 
 function setError(element, message = "") { element.textContent = message; }
@@ -134,6 +158,14 @@ form.addEventListener("submit", async event => {
     const response = await fetch(`${API_ORIGIN}/api/candidates/talent-network`, { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify(payload) });
     const result = await response.json().catch(() => ({}));
     if (!response.ok || !result.success) throw new Error(result.message || `Submission failed (${response.status}).`);
+
+    // Count a conversion only after the API confirms that the profile was saved.
+    // Do not include candidate names, email addresses, phone numbers, or resume data.
+    trackAnalyticsEvent("generate_lead", {
+      form_name: "talent_network",
+      submission_type: "resume_profile",
+    });
+
     form.hidden = true; successState.hidden = false; successState.scrollIntoView({ behavior: "smooth", block: "center" });
   } catch (error) {
     setError(submitError, error instanceof Error ? error.message : "We couldn't save your profile. Please try again.");

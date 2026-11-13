@@ -10,16 +10,20 @@ copyFileSync(join(dir, "ui.js"), tmp);
 
 const {
   cleanJobFieldText,
+  enrichJobFromDescription,
   formatJobDescriptionHtml,
   formatJobListHtml,
   parseJobDescription,
   renderJobDetailSections,
+  unglueProseText,
 } = await import(pathToFileURL(tmp).href);
 unlinkSync(tmp);
 
 const taxGlued = "Role Title: Tax Preparer, Individual Income Tax (Form 1040), TY2025 (EA/CPA)Role Type: ContractorLocation: US, Remotemicro1 is engaging Enrolled Agents and CPAs who actively prepare individual returns to participate in a project supporting a customer. Your domain knowledge is what matters.Scope of WorkPrepare complete federal individual returns by hand.Write clear preparer notes.Required Qualifications (all levels)Active EA or CPA.3+ tax seasons.LevelsContributor: 3+ years.Preferred Experience (specialty areas)Foreign tax credit.";
 
 const litigationGlued = "Job Title: Litigation AttorneyJob Type: ContractorLocation: RemoteJob Summary: We are seeking seasoned U.S.-licensed litigation attorneys for a part-time role.In this role, you will review AI workflows.Key Responsibilities:Perform simulated litigation tasks.Review and assess AI responses.Required Skills and Qualifications:J.D. from an ABA-accredited law school.Active bar admission in at least one U.S. jurisdiction.Preferred Qualifications:Judicial clerkship experience.Prior exposure to AI.Why Join:This is an opportunity to work at the intersection of law and technology.You will help define how AI is developed.";
+
+const imageryGlued = "Role Title: Imagery Analyst - AI/ML Training DataRole Type: Contractor (Part-time or Full-time)Eligibility: This role supports a U.S. Navy project. Under the terms of that federal contract, it requires U.S. citizenship.Scope of WorkReview and refine machine-generated bounding boxes.";
 
 test("parseJobDescription restores Role Title and Job Title variants", () => {
   const tax = parseJobDescription(taxGlued);
@@ -69,4 +73,47 @@ test("renderJobDetailSections formats litigation jobs without Why Join bullets",
 test("formatJobListHtml splits glued sentences", () => {
   const html = formatJobListHtml("Prepare complete federal returns by hand.Write clear preparer notes.Build realistic tax scenarios.");
   assert.equal((html.match(/<li>/g) || []).length, 3);
+});
+
+test("unglueProseText restores missing spaces after periods", () => {
+  assert.equal(
+    unglueProseText("intersection of law and technology.You will help define how AI is developed."),
+    "intersection of law and technology. You will help define how AI is developed.",
+  );
+});
+
+test("parseJobDescription keeps Eligibility and parenthetical role types", () => {
+  const imagery = parseJobDescription(imageryGlued);
+  assert.equal(imagery.meta.find((item) => item.title === "Role type")?.value, "Contractor (Part-time or Full-time)");
+  assert.match(imagery.sections.find((section) => section.key === "eligibility")?.body || "", /U\.S\. Navy/);
+});
+
+test("enrichJobFromDescription fills hero fields and JSON skills", () => {
+  const litigation = enrichJobFromDescription({
+    description: litigationGlued,
+    location: "",
+    employmentType: "",
+    requirements: "",
+  });
+  assert.equal(litigation.location, "Remote");
+  assert.equal(litigation.employmentType, "Contractor");
+
+  const qa = enrichJobFromDescription({
+    description: "",
+    requirements: "{\"skills\":[\"Ubuntu\",\"Migration\"],\"requiredSkills\":[\"Ubuntu\",\"Migration\"],\"preferredSkills\":[]}",
+    requiredSkills: [],
+  });
+  assert.deepEqual(qa.requiredSkills, ["Ubuntu", "Migration"]);
+  assert.equal(qa.requirements, "");
+});
+
+test("renderJobDetailSections unglues Why Join prose", () => {
+  const html = renderJobDetailSections({
+    description: litigationGlued,
+    responsibilities: "Perform simulated litigation tasks.\nReview and assess AI responses.",
+    requirements: "J.D. from an ABA-accredited law school.",
+    preferredQualifications: "Judicial clerkship experience.",
+  });
+  assert.match(html, /technology\. You will help/);
+  assert.doesNotMatch(html, /technology\.You will/);
 });

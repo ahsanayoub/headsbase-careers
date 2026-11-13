@@ -1,15 +1,15 @@
-import { createRecruiterGateway } from "./api/gateway.js?v=20260924r2a68c";
-import { AuthStore, isWorkspaceReady } from "./auth/auth-store.js?v=20260924r2a68c";
-import { forgotPasswordView, loginView, onboardingView, resetPasswordView, signupView, verifyEmailView } from "./auth/auth-views.js?v=20260924r2a68c";
-import { errorState, loadingBlock } from "./components/ui.js?v=20260924r2a68c";
-import { workspaceLayout } from "./layouts/workspace-layout.js?v=20260924r2a68c";
-import { candidateDetailPage, candidatesPage } from "./pages/candidates.js?v=20260924r2a68c";
-import { dashboardPage } from "./pages/dashboard.js?v=20260924r2a68c";
-import { helpPage } from "./pages/help.js?v=20260924r2a68c";
-import { jobDetailPage, jobsPage } from "./pages/jobs.js?v=20260924r2a68c";
-import { profilePage } from "./pages/profile.js?v=20260924r2a68c";
-import { submissionsPage } from "./pages/submissions.js?v=20260924r2a68c";
-import { Router } from "./router.js?v=20260924r2a68c";
+import { createRecruiterGateway } from "./api/gateway.js?v=20261113jobdesc2";
+import { AuthStore, isWorkspaceReady } from "./auth/auth-store.js?v=20261113jobdesc2";
+import { forgotPasswordView, loginView, onboardingView, resetPasswordView, signupView, verifyEmailView } from "./auth/auth-views.js?v=20261113jobdesc2";
+import { errorState, loadingBlock } from "./components/ui.js?v=20261113jobdesc2";
+import { workspaceLayout } from "./layouts/workspace-layout.js?v=20261113jobdesc2";
+import { candidateDetailPage, candidatesPage } from "./pages/candidates.js?v=20261113jobdesc2";
+import { dashboardPage } from "./pages/dashboard.js?v=20261113jobdesc2";
+import { helpPage } from "./pages/help.js?v=20261113jobdesc2";
+import { jobDetailPage, jobsPage } from "./pages/jobs.js?v=20261113jobdesc2";
+import { profilePage } from "./pages/profile.js?v=20261113jobdesc2";
+import { submissionsPage } from "./pages/submissions.js?v=20261113jobdesc2";
+import { Router } from "./router.js?v=20261113jobdesc2";
 
 const root = document.querySelector("#portal-root"); let api=null; let auth=null; let configurationError=null;
 try{api=createRecruiterGateway();auth=new AuthStore(api);}catch(error){configurationError=error;}

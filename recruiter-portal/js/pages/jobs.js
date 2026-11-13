@@ -1,4 +1,3 @@
-import { analytics, runRecruiterCandidateSubmission } from "../../../js/analytics.js";
 import { clientName, emptyState, escapeHtml, formatDate, icon, loadingBlock, renderJobDetailSections, statusBadge } from "../components/ui.js";
 
 function jobFilters() {
@@ -64,17 +63,11 @@ export function jobDetailPage(jobId) {
           const file = data.resume;
           if (!(file instanceof File) || !file.size) throw new Error("Please attach the candidate's resume.");
           if (file.size > 10 * 1024 * 1024) throw new Error("Resume must be 10 MB or smaller.");
-          await runRecruiterCandidateSubmission({
-            uploadResume: () => api.uploadResume(file),
-            submitCandidate: (upload) => api.submitCandidate({ jobId: job.id, firstName: data.firstName, lastName: data.lastName, email: data.email, phone: data.phone, currentTitle: data.currentTitle, currentCompany: data.currentCompany, yearsExperience: data.yearsExperience ? Number(data.yearsExperience) : undefined, location: data.location, linkedinUrl: data.linkedinUrl, desiredSalary: data.desiredSalary ? Number(data.desiredSalary) : undefined, additionalNotes: data.additionalNotes, resume: upload }),
-            showSuccess: (submission) => {
-              successBox.textContent = `Candidate submitted successfully. Submission ID: ${submission.submissionId || submission.applicationId || "created"}.`;
-              successBox.hidden = false;
-              submitButton.textContent = "Submitted";
-            },
-            analytics,
-            jobId: job.id,
-          });
+          const upload = await api.uploadResume(file);
+          const result = await api.submitCandidate({ jobId: job.id, firstName: data.firstName, lastName: data.lastName, email: data.email, phone: data.phone, currentTitle: data.currentTitle, currentCompany: data.currentCompany, yearsExperience: data.yearsExperience ? Number(data.yearsExperience) : undefined, location: data.location, linkedinUrl: data.linkedinUrl, desiredSalary: data.desiredSalary ? Number(data.desiredSalary) : undefined, additionalNotes: data.additionalNotes, resume: upload });
+          successBox.textContent = `Candidate submitted successfully. Submission ID: ${result.submissionId || result.applicationId || "created"}.`;
+          successBox.hidden = false;
+          submitButton.textContent = "Submitted";
           setTimeout(() => dialog.close(), 1600);
         } catch (error) {
           errorBox.textContent = error?.message || "Unable to submit candidate.";

@@ -69,3 +69,174 @@ export function errorState({ title = "Something needs attention", message, actio
 export function clientName(job) {
   return job.clientVisibility?.startsWith("Client identity") ? "Confidential client" : job.client;
 }
+
+const JOB_SECTION_MARKERS = [
+  { key: "roleTitle", pattern: /Role Title:/i, kind: "meta", title: "Role title" },
+  { key: "roleType", pattern: /Role Type:/i, kind: "meta", title: "Role type" },
+  { key: "location", pattern: /Location:/i, kind: "meta", title: "Location" },
+  { key: "roleOverview", pattern: /Role Overview/i, kind: "prose", title: "Role overview" },
+  { key: "scopeOfWork", pattern: /Scope of Work/i, kind: "list", title: "Scope of work" },
+  { key: "requiredQualifications", pattern: /Required Qualifications(?:\s*\([^)]*\))?/i, kind: "list", title: "Required qualifications" },
+  { key: "levels", pattern: /Levels(?=\s*[A-Z]|[A-Z]|$)/i, kind: "list", title: "Levels" },
+  { key: "preferredExperience", pattern: /Preferred Experience(?:\s*\([^)]*\))?/i, kind: "list", title: "Preferred experience" },
+];
+
+function findJobSections(text) {
+  const hits = [];
+  for (const marker of JOB_SECTION_MARKERS) {
+    const match = marker.pattern.exec(text);
+    if (!match) continue;
+    hits.push({ ...marker, index: match.index, end: match.index + match[0].length });
+  }
+  hits.sort((a, b) => a.index - b.index || b.end - a.end);
+  const sections = [];
+  for (let i = 0; i < hits.length; i += 1) {
+    const current = hits[i];
+    if (sections.some((section) => current.index >= section.index && current.index < section.bodyStart)) continue;
+    const next = hits.slice(i + 1).find((candidate) => candidate.index >= current.end);
+    sections.push({
+      key: current.key,
+      kind: current.kind,
+      title: current.title,
+      index: current.index,
+      bodyStart: current.end,
+      bodyEnd: next ? next.index : text.length,
+    });
+  }
+  return sections;
+}
+
+function splitJobListItems(text) {
+  const normalized = String(text || "").replace(/\r\n?/g, "\n").trim();
+  if (!normalized) return [];
+  if (/\n/.test(normalized)) {
+    return normalized
+      .split(/\n+/)
+      .map((line) => line.replace(/^[-•*]\s*/, "").trim())
+      .filter(Boolean);
+  }
+  const items = normalized
+    .split(/(?<=\.)(?:\s+|(?=[A-Z][A-Za-z0-9]))/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+  return items.length > 1 ? items : [normalized];
+}
+
+function splitJobParagraphs(text) {
+  const normalized = String(text || "").replace(/\r\n?/g, "\n").trim();
+  if (!normalized) return [];
+  const paragraphs = normalized
+    .split(/\n{2,}/)
+    .map((part) => part.replace(/\s*\n\s*/g, " ").trim())
+    .filter(Boolean);
+  return paragraphs.length ? paragraphs : [normalized];
+}
+
+function trimGluedMetaValue(value, kind, key) {
+  const text = String(value || "").trim();
+  if (!text || kind !== "meta") return text;
+  if (key === "location") {
+    const workplace = text.match(/^(.*?(?:\bRemote\b|\bHybrid\b|\bOn-?site\b|\bOn site\b))(?=[A-Za-z])/i);
+    if (workplace) return workplace[1].trim();
+    const beforeBrand = text.search(/(?<=[A-Za-z])(?=micro1\b)/i);
+    if (beforeBrand > 0) return text.slice(0, beforeBrand).trim();
+  }
+  if (key === "roleType") {
+    const known = text.match(/^(Contractor|Full[-\s]?time|Part[-\s]?time|Employee|Intern|Temporary|Contract)(?=[A-Za-z]|$)/i);
+    if (known) return known[1];
+  }
+  return text;
+}
+
+export function parseJobDescription(value) {
+  const text = String(value || "").trim();
+  if (!text) return { meta: [], sections: [], leftover: "" };
+  const markers = findJobSections(text);
+  if (!markers.length) {
+    return { meta: [], sections: [{ key: "overview", kind: "prose", title: "Overview", body: text }], leftover: "" };
+  }
+  const meta = [];
+  const sections = [];
+  const overflows = [];
+  const leftover = markers[0].index > 0 ? text.slice(0, markers[0].index).trim() : "";
+  for (const marker of markers) {
+    const rawBody = text.slice(marker.bodyStart, marker.bodyEnd).trim();
+    const body = trimGluedMetaValue(rawBody, marker.kind, marker.key);
+    if (marker.kind === "meta") {
+      meta.push({ title: marker.title, value: body });
+      if (body && rawBody.length > body.length) overflows.push(rawBody.slice(body.length).trim());
+    } else {
+      sections.push({ key: marker.key, kind: marker.kind, title: marker.title, body });
+    }
+  }
+  if (overflows.length) {
+    sections.unshift({
+      key: "overview",
+      kind: "prose",
+      title: "Role overview",
+      body: overflows.filter(Boolean).join("\n\n"),
+    });
+  }
+  return { meta, sections, leftover };
+}
+
+export function formatJobListHtml(value) {
+  const items = splitJobListItems(value);
+  if (!items.length) return "";
+  return `<ul class="job-prose-list">${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+}
+
+export function formatJobDescriptionHtml(value, { includeMeta = true } = {}) {
+  const text = String(value || "").trim();
+  if (!text) return `<p>${escapeHtml("No job description provided.")}</p>`;
+  const parsed = parseJobDescription(text);
+  const blocks = [];
+  if (includeMeta && parsed.meta.length) {
+    blocks.push(`<dl class="job-prose-meta">${parsed.meta.map((item) => `<div><dt>${escapeHtml(item.title)}</dt><dd>${escapeHtml(item.value)}</dd></div>`).join("")}</dl>`);
+  }
+  if (parsed.leftover) {
+    blocks.push(splitJobParagraphs(parsed.leftover).map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join(""));
+  }
+  for (const section of parsed.sections) {
+    if (!section.body) continue;
+    blocks.push(`<h4>${escapeHtml(section.title)}</h4>`);
+    if (section.kind === "list") blocks.push(formatJobListHtml(section.body));
+    else blocks.push(splitJobParagraphs(section.body).map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join(""));
+  }
+  if (!blocks.length) {
+    return splitJobParagraphs(text).map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("");
+  }
+  return `<div class="job-prose">${blocks.join("")}</div>`;
+}
+
+function renderOverviewFromDescription(description) {
+  const parsed = parseJobDescription(description || "");
+  const blocks = [];
+  if (parsed.meta.length) {
+    blocks.push(`<dl class="job-prose-meta">${parsed.meta.map((item) => `<div><dt>${escapeHtml(item.title)}</dt><dd>${escapeHtml(item.value)}</dd></div>`).join("")}</dl>`);
+  }
+  const overviewText = [
+    parsed.leftover,
+    ...parsed.sections.filter((section) => section.kind === "prose").map((section) => section.body),
+  ].filter(Boolean).join("\n\n");
+  if (overviewText) {
+    blocks.push(splitJobParagraphs(overviewText).map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join(""));
+  }
+  if (!blocks.length) return formatJobDescriptionHtml(description || "");
+  return `<div class="job-prose">${blocks.join("")}</div>`;
+}
+
+export function renderJobDetailSections(job) {
+  const responsibilities = splitJobListItems(job.responsibilities);
+  const requirements = splitJobListItems(job.requirements);
+  const preferred = splitJobListItems(job.preferredQualifications);
+  const hasStructured = responsibilities.length > 0 || requirements.length > 0 || preferred.length > 0;
+  if (!hasStructured) {
+    return `<section><h3>About the role</h3>${formatJobDescriptionHtml(job.description || "")}</section>`;
+  }
+  const parts = [`<section><h3>About the role</h3>${renderOverviewFromDescription(job.description || "")}</section>`];
+  if (responsibilities.length) parts.push(`<section><h3>Scope of work</h3>${formatJobListHtml(job.responsibilities)}</section>`);
+  if (requirements.length) parts.push(`<section><h3>Required qualifications</h3>${formatJobListHtml(job.requirements)}</section>`);
+  if (preferred.length) parts.push(`<section><h3>Preferred qualifications</h3>${formatJobListHtml(job.preferredQualifications)}</section>`);
+  return parts.join("");
+}

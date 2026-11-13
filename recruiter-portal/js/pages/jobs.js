@@ -1,4 +1,5 @@
-import { clientName, emptyState, escapeHtml, formatDate, icon, loadingBlock, statusBadge } from "../components/ui.js";
+import { analytics, runRecruiterCandidateSubmission } from "../../../js/analytics.js";
+import { clientName, emptyState, escapeHtml, formatDate, icon, loadingBlock, renderJobDetailSections, statusBadge } from "../components/ui.js";
 
 function jobFilters() {
   return `<form class="filter-toolbar" id="jobs-filters" role="search">
@@ -48,7 +49,7 @@ export function jobDetailPage(jobId) {
     initial: loadingBlock("Loading shared job details"),
     async load(container, api) {
       const job = await api.getJob(jobId);
-      container.innerHTML = `<a class="back-link" href="#/jobs">${icon("arrowLeft", 17)} Back to my jobs</a><article class="job-detail"><header class="job-detail-hero"><div><p class="page-kicker">${escapeHtml(job.clientVisibility)}</p><h2>${escapeHtml(job.title)}</h2><p class="job-client">${escapeHtml(clientName(job))}</p><div class="detail-meta"><span>${escapeHtml(job.location)}</span><span>${escapeHtml(job.employmentType)}</span><span>${escapeHtml(job.experienceLevel)}</span></div></div><div class="job-detail-actions">${statusBadge(job.status)}<button class="button button-primary" type="button" data-action="open-submission-shell">${icon("plus", 17)} Submit candidate</button></div></header><div class="job-detail-body"><section><h3>About the role</h3><p>${escapeHtml(job.description)}</p></section><section class="detail-facts"><div><span>Priority</span><strong class="priority ${String(job.priority || "Standard").toLowerCase()}">${escapeHtml(job.priority)}</strong></div><div><span>Date assigned</span><strong>${formatDate(job.assignedAt)}</strong></div><div><span>Compensation</span><strong>${escapeHtml(job.compensation)}</strong></div><div><span>Candidates submitted</span><strong>${job.candidatesSubmitted}</strong></div></section><section><h3>Required skills</h3>${skillList(job.requiredSkills)}</section><section><h3>Preferred skills</h3>${skillList(job.preferredSkills)}</section><section class="instructions-section"><h3>Recruiter instructions</h3><p>${escapeHtml(job.instructions)}</p></section><section><h3>Submission expectations</h3><p>${escapeHtml(job.expectations)}</p></section></div></article>${submissionDialog()}`;
+      container.innerHTML = `<a class="back-link" href="#/jobs">${icon("arrowLeft", 17)} Back to my jobs</a><article class="job-detail"><header class="job-detail-hero"><div><p class="page-kicker">${escapeHtml(job.clientVisibility)}</p><h2>${escapeHtml(job.title)}</h2><p class="job-client">${escapeHtml(clientName(job))}</p><div class="detail-meta"><span>${escapeHtml(job.location)}</span><span>${escapeHtml(job.employmentType)}</span><span>${escapeHtml(job.experienceLevel)}</span></div></div><div class="job-detail-actions">${statusBadge(job.status)}<button class="button button-primary" type="button" data-action="open-submission-shell">${icon("plus", 17)} Submit candidate</button></div></header><div class="job-detail-body">${renderJobDetailSections(job)}<section class="detail-facts"><div><span>Priority</span><strong class="priority ${String(job.priority || "Standard").toLowerCase()}">${escapeHtml(job.priority)}</strong></div><div><span>Date assigned</span><strong>${formatDate(job.assignedAt)}</strong></div><div><span>Compensation</span><strong>${escapeHtml(job.compensation)}</strong></div><div><span>Candidates submitted</span><strong>${job.candidatesSubmitted}</strong></div></section><section><h3>Required skills</h3>${skillList(job.requiredSkills)}</section><section><h3>Preferred skills</h3>${skillList(job.preferredSkills)}</section><section class="instructions-section"><h3>Recruiter instructions</h3><p>${escapeHtml(job.instructions)}</p></section><section><h3>Submission expectations</h3><p>${escapeHtml(job.expectations)}</p></section></div></article>${submissionDialog()}`;
       const dialog = container.querySelector("#submission-dialog");
       const form = container.querySelector("#submission-form");
       const submitButton = container.querySelector("#submit-candidate");
@@ -63,11 +64,17 @@ export function jobDetailPage(jobId) {
           const file = data.resume;
           if (!(file instanceof File) || !file.size) throw new Error("Please attach the candidate's resume.");
           if (file.size > 10 * 1024 * 1024) throw new Error("Resume must be 10 MB or smaller.");
-          const upload = await api.uploadResume(file);
-          const result = await api.submitCandidate({ jobId: job.id, firstName: data.firstName, lastName: data.lastName, email: data.email, phone: data.phone, currentTitle: data.currentTitle, currentCompany: data.currentCompany, yearsExperience: data.yearsExperience ? Number(data.yearsExperience) : undefined, location: data.location, linkedinUrl: data.linkedinUrl, desiredSalary: data.desiredSalary ? Number(data.desiredSalary) : undefined, additionalNotes: data.additionalNotes, resume: upload });
-          successBox.textContent = `Candidate submitted successfully. Submission ID: ${result.submissionId || result.applicationId || "created"}.`;
-          successBox.hidden = false;
-          submitButton.textContent = "Submitted";
+          await runRecruiterCandidateSubmission({
+            uploadResume: () => api.uploadResume(file),
+            submitCandidate: (upload) => api.submitCandidate({ jobId: job.id, firstName: data.firstName, lastName: data.lastName, email: data.email, phone: data.phone, currentTitle: data.currentTitle, currentCompany: data.currentCompany, yearsExperience: data.yearsExperience ? Number(data.yearsExperience) : undefined, location: data.location, linkedinUrl: data.linkedinUrl, desiredSalary: data.desiredSalary ? Number(data.desiredSalary) : undefined, additionalNotes: data.additionalNotes, resume: upload }),
+            showSuccess: (submission) => {
+              successBox.textContent = `Candidate submitted successfully. Submission ID: ${submission.submissionId || submission.applicationId || "created"}.`;
+              successBox.hidden = false;
+              submitButton.textContent = "Submitted";
+            },
+            analytics,
+            jobId: job.id,
+          });
           setTimeout(() => dialog.close(), 1600);
         } catch (error) {
           errorBox.textContent = error?.message || "Unable to submit candidate.";

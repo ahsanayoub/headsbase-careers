@@ -71,14 +71,16 @@ export function clientName(job) {
 }
 
 const JOB_SECTION_MARKERS = [
-  { key: "roleTitle", pattern: /Role Title:/i, kind: "meta", title: "Role title" },
-  { key: "roleType", pattern: /Role Type:/i, kind: "meta", title: "Role type" },
+  { key: "roleTitle", pattern: /(?:Role|Job)\s+Title:/i, kind: "meta", title: "Role title" },
+  { key: "roleType", pattern: /(?:Role|Job)\s+Type:/i, kind: "meta", title: "Role type" },
   { key: "location", pattern: /Location:/i, kind: "meta", title: "Location" },
-  { key: "roleOverview", pattern: /Role Overview/i, kind: "prose", title: "Role overview" },
-  { key: "scopeOfWork", pattern: /Scope of Work/i, kind: "list", title: "Scope of work" },
-  { key: "requiredQualifications", pattern: /Required Qualifications(?:\s*\([^)]*\))?/i, kind: "list", title: "Required qualifications" },
+  { key: "jobSummary", pattern: /Job Summary:?/i, kind: "prose", title: "Job summary" },
+  { key: "roleOverview", pattern: /Role Overview:?/i, kind: "prose", title: "Role overview" },
+  { key: "scopeOfWork", pattern: /(?:Scope of Work|Key Responsibilities):?/i, kind: "list", title: "Scope of work" },
+  { key: "requiredQualifications", pattern: /(?:Required Qualifications(?:\s*\([^)]*\))?|Required Skills and Qualifications):?/i, kind: "list", title: "Required qualifications" },
   { key: "levels", pattern: /Levels(?=\s*[A-Z]|[A-Z]|$)/i, kind: "list", title: "Levels" },
-  { key: "preferredExperience", pattern: /Preferred Experience(?:\s*\([^)]*\))?/i, kind: "list", title: "Preferred experience" },
+  { key: "preferredExperience", pattern: /(?:Preferred Experience(?:\s*\([^)]*\))?|Preferred Qualifications):?/i, kind: "list", title: "Preferred qualifications" },
+  { key: "whyJoin", pattern: /Why Join:?/i, kind: "prose", title: "Why join" },
 ];
 
 function findJobSections(text) {
@@ -106,14 +108,23 @@ function findJobSections(text) {
   return sections;
 }
 
+export function cleanJobFieldText(value) {
+  let text = String(value || "").replace(/\r\n?/g, "\n").trim();
+  if (!text) return "";
+  text = text.replace(/\n?\s*\{[\s\S]*\}\s*$/g, "").trim();
+  text = text.split(/\n(?=Why Join:?)/i)[0].trim();
+  text = text.replace(/\s*Why Join:[\s\S]*$/i, "").trim();
+  return text;
+}
+
 function splitJobListItems(text) {
-  const normalized = String(text || "").replace(/\r\n?/g, "\n").trim();
+  const normalized = cleanJobFieldText(text);
   if (!normalized) return [];
   if (/\n/.test(normalized)) {
     return normalized
       .split(/\n+/)
       .map((line) => line.replace(/^[-•*]\s*/, "").trim())
-      .filter(Boolean);
+      .filter((line) => line && !/^why join:?$/i.test(line));
   }
   const items = normalized
     .split(/(?<=\.)(?:\s+|(?=[A-Z][A-Za-z0-9]))/)
@@ -136,9 +147,11 @@ function trimGluedMetaValue(value, kind, key) {
   const text = String(value || "").trim();
   if (!text || kind !== "meta") return text;
   if (key === "location") {
-    const workplace = text.match(/^(.*?(?:\bRemote\b|\bHybrid\b|\bOn-?site\b|\bOn site\b))(?=[A-Za-z])/i);
-    if (workplace) return workplace[1].trim();
-    const beforeBrand = text.search(/(?<=[A-Za-z])(?=micro1\b)/i);
+    const workplace = text.match(/^(Remote|Hybrid|On-?site|On site)(?=[A-Z]|$)/i);
+    if (workplace) return workplace[1];
+    const labeled = text.match(/^([A-Za-z0-9 .,'/-]{1,80}?(?:Remote|Hybrid|On-?site|On site))(?=[A-Z])/i);
+    if (labeled) return labeled[1].trim();
+    const beforeBrand = text.search(/micro1\b/i);
     if (beforeBrand > 0) return text.slice(0, beforeBrand).trim();
   }
   if (key === "roleType") {
@@ -166,7 +179,7 @@ export function parseJobDescription(value) {
       meta.push({ title: marker.title, value: body });
       if (body && rawBody.length > body.length) overflows.push(rawBody.slice(body.length).trim());
     } else {
-      sections.push({ key: marker.key, kind: marker.kind, title: marker.title, body });
+      sections.push({ key: marker.key, kind: marker.kind, title: marker.title, body: cleanJobFieldText(body) });
     }
   }
   if (overflows.length) {
@@ -186,7 +199,7 @@ export function formatJobListHtml(value) {
   return `<ul class="job-prose-list">${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
 }
 
-export function formatJobDescriptionHtml(value, { includeMeta = true } = {}) {
+export function formatJobDescriptionHtml(value, { includeMeta = true, includeLists = true } = {}) {
   const text = String(value || "").trim();
   if (!text) return `<p>${escapeHtml("No job description provided.")}</p>`;
   const parsed = parseJobDescription(text);
@@ -199,6 +212,7 @@ export function formatJobDescriptionHtml(value, { includeMeta = true } = {}) {
   }
   for (const section of parsed.sections) {
     if (!section.body) continue;
+    if (!includeLists && section.kind === "list") continue;
     blocks.push(`<h4>${escapeHtml(section.title)}</h4>`);
     if (section.kind === "list") blocks.push(formatJobListHtml(section.body));
     else blocks.push(splitJobParagraphs(section.body).map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join(""));
@@ -215,28 +229,36 @@ function renderOverviewFromDescription(description) {
   if (parsed.meta.length) {
     blocks.push(`<dl class="job-prose-meta">${parsed.meta.map((item) => `<div><dt>${escapeHtml(item.title)}</dt><dd>${escapeHtml(item.value)}</dd></div>`).join("")}</dl>`);
   }
-  const overviewText = [
-    parsed.leftover,
-    ...parsed.sections.filter((section) => section.kind === "prose").map((section) => section.body),
-  ].filter(Boolean).join("\n\n");
-  if (overviewText) {
-    blocks.push(splitJobParagraphs(overviewText).map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join(""));
+  if (parsed.leftover) {
+    blocks.push(splitJobParagraphs(parsed.leftover).map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join(""));
   }
-  if (!blocks.length) return formatJobDescriptionHtml(description || "");
+  for (const section of parsed.sections) {
+    if (!section.body || section.kind === "list" || section.key === "whyJoin") continue;
+    blocks.push(`<h4>${escapeHtml(section.title)}</h4>`);
+    blocks.push(splitJobParagraphs(section.body).map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join(""));
+  }
+  if (!blocks.length) return formatJobDescriptionHtml(description || "", { includeMeta: true, includeLists: false });
   return `<div class="job-prose">${blocks.join("")}</div>`;
 }
 
 export function renderJobDetailSections(job) {
-  const responsibilities = splitJobListItems(job.responsibilities);
-  const requirements = splitJobListItems(job.requirements);
-  const preferred = splitJobListItems(job.preferredQualifications);
+  const responsibilitiesText = cleanJobFieldText(job.responsibilities);
+  const requirementsText = cleanJobFieldText(job.requirements);
+  const preferredText = cleanJobFieldText(job.preferredQualifications);
+  const responsibilities = splitJobListItems(responsibilitiesText);
+  const requirements = splitJobListItems(requirementsText);
+  const preferred = splitJobListItems(preferredText);
   const hasStructured = responsibilities.length > 0 || requirements.length > 0 || preferred.length > 0;
   if (!hasStructured) {
     return `<section><h3>About the role</h3>${formatJobDescriptionHtml(job.description || "")}</section>`;
   }
   const parts = [`<section><h3>About the role</h3>${renderOverviewFromDescription(job.description || "")}</section>`];
-  if (responsibilities.length) parts.push(`<section><h3>Scope of work</h3>${formatJobListHtml(job.responsibilities)}</section>`);
-  if (requirements.length) parts.push(`<section><h3>Required qualifications</h3>${formatJobListHtml(job.requirements)}</section>`);
-  if (preferred.length) parts.push(`<section><h3>Preferred qualifications</h3>${formatJobListHtml(job.preferredQualifications)}</section>`);
+  if (responsibilities.length) parts.push(`<section><h3>Scope of work</h3>${formatJobListHtml(responsibilitiesText)}</section>`);
+  if (requirements.length) parts.push(`<section><h3>Required qualifications</h3>${formatJobListHtml(requirementsText)}</section>`);
+  if (preferred.length) parts.push(`<section><h3>Preferred qualifications</h3>${formatJobListHtml(preferredText)}</section>`);
+  const whyJoin = parseJobDescription(job.description || "").sections.find((section) => section.key === "whyJoin");
+  if (whyJoin?.body) {
+    parts.push(`<section><h3>Why join</h3>${splitJobParagraphs(whyJoin.body).map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")}</section>`);
+  }
   return parts.join("");
 }

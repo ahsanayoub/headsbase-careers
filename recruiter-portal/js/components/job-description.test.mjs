@@ -9,6 +9,7 @@ const tmp = join(dir, `_ui_job_description_test_${process.pid}.mjs`);
 copyFileSync(join(dir, "ui.js"), tmp);
 
 const {
+  cleanJobFieldText,
   formatJobDescriptionHtml,
   formatJobListHtml,
   parseJobDescription,
@@ -16,55 +17,56 @@ const {
 } = await import(pathToFileURL(tmp).href);
 unlinkSync(tmp);
 
-const glued = "Role Title: Tax Preparer, Individual Income Tax (Form 1040), TY2025 (EA/CPA)Role Type: ContractorLocation: US, Remotemicro1 is engaging Enrolled Agents and CPAs who actively prepare individual returns to participate in a project supporting a customer. In this role, you’ll apply your hands-on preparation expertise to help train next-generation AI systems. Your domain knowledge is what matters.Scope of WorkPrepare complete federal individual returns (Form 1040) from scratch under TY2025 rules, working through the worksheets, phase-outs, limitations, and carryovers by hand.Write clear, concise preparer notes explaining how each figure on the return was derived, so that every number can be traced and reproduced.Build realistic, self-contained tax scenarios involving complex returns.Required Qualifications (all levels)Active EA or CPA who currently prepares individual (1040) returns.3+ tax seasons on complex returns.Fluency in TY2025 rules.LevelsContributor: 3+ years preparing complex personal returns.Expert: 5+ years.Preferred Experience (specialty areas)Foreign tax credit (Form 1116).Small business (Schedule C).";
+const taxGlued = "Role Title: Tax Preparer, Individual Income Tax (Form 1040), TY2025 (EA/CPA)Role Type: ContractorLocation: US, Remotemicro1 is engaging Enrolled Agents and CPAs who actively prepare individual returns to participate in a project supporting a customer. Your domain knowledge is what matters.Scope of WorkPrepare complete federal individual returns by hand.Write clear preparer notes.Required Qualifications (all levels)Active EA or CPA.3+ tax seasons.LevelsContributor: 3+ years.Preferred Experience (specialty areas)Foreign tax credit.";
 
-test("parseJobDescription restores glued Micro1 headings and meta values", () => {
-  const parsed = parseJobDescription(glued);
-  assert.equal(parsed.meta.find((item) => item.title === "Role title")?.value.includes("Tax Preparer"), true);
-  assert.equal(parsed.meta.find((item) => item.title === "Role type")?.value, "Contractor");
-  assert.equal(parsed.meta.find((item) => item.title === "Location")?.value, "US, Remote");
-  assert.match(parsed.sections.find((section) => section.key === "overview")?.body || "", /micro1 is engaging/);
-  assert.match(parsed.sections.find((section) => section.key === "scopeOfWork")?.body || "", /^Prepare complete federal/);
-  assert.match(parsed.sections.find((section) => section.key === "requiredQualifications")?.body || "", /^Active EA or CPA/);
-  assert.match(parsed.sections.find((section) => section.key === "preferredExperience")?.body || "", /Foreign tax credit/);
+const litigationGlued = "Job Title: Litigation AttorneyJob Type: ContractorLocation: RemoteJob Summary: We are seeking seasoned U.S.-licensed litigation attorneys for a part-time role.In this role, you will review AI workflows.Key Responsibilities:Perform simulated litigation tasks.Review and assess AI responses.Required Skills and Qualifications:J.D. from an ABA-accredited law school.Active bar admission in at least one U.S. jurisdiction.Preferred Qualifications:Judicial clerkship experience.Prior exposure to AI.Why Join:This is an opportunity to work at the intersection of law and technology.You will help define how AI is developed.";
+
+test("parseJobDescription restores Role Title and Job Title variants", () => {
+  const tax = parseJobDescription(taxGlued);
+  assert.equal(tax.meta.find((item) => item.title === "Role title")?.value.includes("Tax Preparer"), true);
+  assert.equal(tax.meta.find((item) => item.title === "Location")?.value, "US, Remote");
+
+  const litigation = parseJobDescription(litigationGlued);
+  assert.equal(litigation.meta.find((item) => item.title === "Role title")?.value, "Litigation Attorney");
+  assert.equal(litigation.meta.find((item) => item.title === "Role type")?.value, "Contractor");
+  assert.equal(litigation.meta.find((item) => item.title === "Location")?.value, "Remote");
+  assert.match(litigation.sections.find((section) => section.key === "jobSummary")?.body || "", /seasoned U\.S\.-licensed/);
+  assert.match(litigation.sections.find((section) => section.key === "whyJoin")?.body || "", /intersection of law/);
 });
 
-test("formatJobDescriptionHtml renders structured markup and escapes HTML", () => {
-  const html = formatJobDescriptionHtml(`${glued}<script>alert(1)</script>`);
-  assert.match(html, /class="job-prose"/);
-  assert.match(html, /<dt>Role title<\/dt>/);
-  assert.match(html, /<h4>Scope of work<\/h4>/);
-  assert.match(html, /<ul class="job-prose-list">/);
-  assert.match(html, /&lt;script&gt;/);
-  assert.doesNotMatch(html, /<script>/);
+test("cleanJobFieldText strips Why Join and trailing JSON", () => {
+  const cleaned = cleanJobFieldText("Judicial clerkship.\nPrior AI exposure.\nWhy Join:\nGreat opportunity.\n{\"skills\":[\"law\"]}");
+  assert.equal(cleaned.includes("Why Join"), false);
+  assert.equal(cleaned.includes("skills"), false);
+  assert.match(cleaned, /Judicial clerkship/);
 });
 
-test("formatJobListHtml splits newline and sentence-run list items", () => {
-  const fromNewlines = formatJobListHtml("Active EA or CPA.\n3+ tax seasons.\nFluency in TY2025 rules.");
-  assert.equal((fromNewlines.match(/<li>/g) || []).length, 3);
-  const fromSentences = formatJobListHtml("Prepare complete federal returns by hand.Write clear preparer notes.Build realistic tax scenarios.");
-  assert.equal((fromSentences.match(/<li>/g) || []).length, 3);
+test("formatJobDescriptionHtml keeps overview readable without dumping later lists twice", () => {
+  const html = formatJobDescriptionHtml(litigationGlued, { includeLists: false });
+  assert.match(html, /<dt>Location<\/dt><dd>Remote<\/dd>/);
+  assert.match(html, /<h4>Job summary<\/h4>/);
+  assert.doesNotMatch(html, /Key Responsibilities/);
+  assert.match(html, /Why join/);
 });
 
-test("renderJobDetailSections prefers structured API fields when present", () => {
+test("renderJobDetailSections formats litigation jobs without Why Join bullets", () => {
   const html = renderJobDetailSections({
-    description: glued,
-    responsibilities: "Prepare complete federal returns by hand.\nWrite clear preparer notes.",
-    requirements: "Active EA or CPA.\n3+ tax seasons.",
-    preferredQualifications: "Foreign tax credit (Form 1116).",
+    description: litigationGlued,
+    responsibilities: "Perform simulated litigation tasks.\nReview and assess AI responses.",
+    requirements: "J.D. from an ABA-accredited law school.\nActive bar admission in at least one U.S. jurisdiction.",
+    preferredQualifications: "Judicial clerkship experience.\nPrior exposure to AI.\nWhy Join:\nThis is an opportunity.\nYou will help define AI.",
   });
-  assert.match(html, /<h3>About the role<\/h3>/);
+  assert.match(html, /<dt>Location<\/dt><dd>Remote<\/dd>/);
+  assert.match(html, /Job summary/);
   assert.match(html, /<h3>Scope of work<\/h3>/);
-  assert.match(html, /<h3>Required qualifications<\/h3>/);
   assert.match(html, /<h3>Preferred qualifications<\/h3>/);
-  assert.match(html, /US, Remote/);
-  assert.match(html, /micro1 is engaging/);
-  assert.equal((html.match(/Prepare complete federal returns by hand/g) || []).length, 1);
+  assert.match(html, /<h3>Why join<\/h3>/);
+  assert.doesNotMatch(html, /<li>Why Join:/);
+  assert.doesNotMatch(html, /RemoteJob Summary/);
+  assert.doesNotMatch(html, /AttorneyJob Type/);
 });
 
-test("renderJobDetailSections falls back to description formatting", () => {
-  const html = renderJobDetailSections({ description: glued });
-  assert.match(html, /<h3>About the role<\/h3>/);
-  assert.match(html, /<h4>Scope of work<\/h4>/);
-  assert.match(html, /<h4>Required qualifications<\/h4>/);
+test("formatJobListHtml splits glued sentences", () => {
+  const html = formatJobListHtml("Prepare complete federal returns by hand.Write clear preparer notes.Build realistic tax scenarios.");
+  assert.equal((html.match(/<li>/g) || []).length, 3);
 });

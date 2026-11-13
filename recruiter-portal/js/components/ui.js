@@ -330,21 +330,26 @@ function renderOverviewFromDescription(description) {
 }
 
 export function renderJobDetailSections(job) {
-  const responsibilitiesText = cleanJobFieldText(job.responsibilities);
-  const requirementsText = cleanJobFieldText(job.requirements);
-  const preferredText = cleanJobFieldText(job.preferredQualifications);
+  const parsed = parseJobDescription(job.description || "");
+  const sectionBody = (key) => parsed.sections.find((section) => section.key === key)?.body || "";
+  const responsibilitiesText = cleanJobFieldText(job.responsibilities) || sectionBody("scopeOfWork");
+  const requirementsText = cleanJobFieldText(job.requirements) || sectionBody("requiredQualifications");
+  const preferredText = cleanJobFieldText(job.preferredQualifications) || sectionBody("preferredExperience");
+  const levelsText = sectionBody("levels");
   const responsibilities = splitJobListItems(responsibilitiesText);
   const requirements = splitJobListItems(requirementsText);
   const preferred = splitJobListItems(preferredText);
-  const hasStructured = responsibilities.length > 0 || requirements.length > 0 || preferred.length > 0;
+  const levels = splitJobListItems(levelsText);
+  const hasStructured = responsibilities.length > 0 || requirements.length > 0 || preferred.length > 0 || levels.length > 0;
   if (!hasStructured) {
     return `<section><h3>About the role</h3>${formatJobDescriptionHtml(job.description || "")}</section>`;
   }
   const parts = [`<section><h3>About the role</h3>${renderOverviewFromDescription(job.description || "")}</section>`];
   if (responsibilities.length) parts.push(`<section><h3>Scope of work</h3>${formatJobListHtml(responsibilitiesText)}</section>`);
   if (requirements.length) parts.push(`<section><h3>Required qualifications</h3>${formatJobListHtml(requirementsText)}</section>`);
+  if (levels.length) parts.push(`<section><h3>Levels</h3>${formatJobListHtml(levelsText)}</section>`);
   if (preferred.length) parts.push(`<section><h3>Preferred qualifications</h3>${formatJobListHtml(preferredText)}</section>`);
-  const whyJoin = parseJobDescription(job.description || "").sections.find((section) => section.key === "whyJoin");
+  const whyJoin = parsed.sections.find((section) => section.key === "whyJoin");
   if (whyJoin?.body) {
     parts.push(`<section><h3>Why join</h3>${splitJobParagraphs(whyJoin.body).map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")}</section>`);
   }

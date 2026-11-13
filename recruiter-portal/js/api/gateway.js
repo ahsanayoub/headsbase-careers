@@ -1,6 +1,6 @@
-import { assertApiConfiguration, portalConfig } from "../config.js?v=20261113jobdesc5";
-import { enrichJobFromDescription } from "../components/ui.js?v=20261113jobdesc5";
-import { HttpClient } from "./http-client.js?v=20261113jobdesc5";
+import { assertApiConfiguration, portalConfig } from "../config.js?v=20261113jobdesc6";
+import { enrichJobFromDescription } from "../components/ui.js?v=20261113jobdesc6";
+import { HttpClient } from "./http-client.js?v=20261113jobdesc6";
 
 function normalizeUser(value) { if (!value) return null; return { ...value, name: value.name || [value.firstName, value.lastName].filter(Boolean).join(" ").trim() }; }
 function normalizeSession(payload) { const value = payload?.data ?? payload; if (!value) return null; if (value.user) return { ...value, user: normalizeUser(value.user) }; return { user: normalizeUser(value), organization: { name: value.organizationName || "" }, onboardingComplete: Boolean(value.emailVerified) }; }

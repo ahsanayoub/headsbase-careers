@@ -117,3 +117,15 @@ test("renderJobDetailSections unglues Why Join prose", () => {
   assert.match(html, /technology\. You will help/);
   assert.doesNotMatch(html, /technology\.You will/);
 });
+
+test("renderJobDetailSections recovers Preferred Experience from description when field is empty", () => {
+  const html = renderJobDetailSections({
+    description: taxGlued,
+    responsibilities: "Prepare complete federal individual returns by hand.\nWrite clear preparer notes.",
+    requirements: "Active EA or CPA.\n3+ tax seasons.",
+    preferredQualifications: "",
+  });
+  assert.match(html, /<h3>Preferred qualifications<\/h3>/);
+  assert.match(html, /Foreign tax credit/);
+  assert.match(html, /<h3>Levels<\/h3>/);
+});

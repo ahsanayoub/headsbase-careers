@@ -1,4 +1,4 @@
-import { escapeHtml, icon, initials } from "../components/ui.js";
+import { escapeHtml, formatDate, icon, initials } from "../components/ui.js?v=20261116alerts1";
 
 const navigation = [
   ["/dashboard", "Dashboard", "dashboard"],
@@ -9,10 +9,45 @@ const navigation = [
   ["/help", "Help", "help"],
 ];
 
-export function workspaceLayout({ session, route, page }) {
+function notificationWhen(value) {
+  if (!value) return "";
+  const raw = String(value).trim();
+  if (/^\d{4}-\d{2}-\d{2}/.test(raw) || Number.isFinite(Date.parse(raw))) {
+    return formatDate(raw, { month: "short", day: "numeric" });
+  }
+  return raw;
+}
+
+export function notificationsPanel({ items = [], unreadCount = 0, loading = false, error = "" } = {}) {
+  if (loading) {
+    return `<div class="notifications-panel" id="notifications-panel" role="dialog" aria-label="Notifications"><div class="notifications-heading"><strong>Notifications</strong></div><p class="notifications-empty">Loading updates…</p></div>`;
+  }
+  if (error) {
+    return `<div class="notifications-panel" id="notifications-panel" role="dialog" aria-label="Notifications"><div class="notifications-heading"><strong>Notifications</strong></div><p class="notifications-empty">${escapeHtml(error)}</p></div>`;
+  }
+  return `<div class="notifications-panel" id="notifications-panel" role="dialog" aria-label="Notifications">
+    <div class="notifications-heading">
+      <div><strong>Notifications</strong><small>${unreadCount ? `${unreadCount} unread` : "You're up to date"}</small></div>
+      ${items.length ? `<button type="button" class="text-link" data-action="mark-all-notifications-read">Mark all read</button>` : ""}
+    </div>
+    ${items.length
+      ? `<ul class="notifications-list">${items.map((item) => `
+        <li class="${item.unread ? "is-unread" : ""}">
+          <button type="button" class="notification-item" data-action="open-notification" data-notification-id="${escapeHtml(item.id)}" data-href="${escapeHtml(item.href || "")}">
+            <strong>${escapeHtml(item.title)}</strong>
+            <span>${escapeHtml(item.detail)}</span>
+            <time>${escapeHtml(notificationWhen(item.createdAt))}</time>
+          </button>
+        </li>`).join("")}</ul>`
+      : `<p class="notifications-empty">No notifications yet. Job assignments and submission updates will appear here.</p>`}
+  </div>`;
+}
+
+export function workspaceLayout({ session, route, page, notifications = { items: [], unreadCount: 0 } }) {
   const user = session.user;
   const organization = session.organization;
   const activePath = route.name === "job-detail" ? "/jobs" : route.pattern;
+  const unreadCount = Number(notifications.unreadCount || 0);
 
   return `
     <div class="portal-shell">
@@ -48,7 +83,13 @@ export function workspaceLayout({ session, route, page }) {
             <p class="page-description">${escapeHtml(page.description)}</p>
           </div>
           <div class="header-actions">
-            <button class="icon-control" type="button" aria-label="Notifications" title="Notifications coming soon">${icon("bell", 19)}<span class="notification-dot" aria-hidden="true"></span></button>
+            <div class="notifications-anchor">
+              <button class="icon-control" type="button" data-action="toggle-notifications" aria-label="Notifications" aria-expanded="false" aria-controls="notifications-panel" title="Notifications">
+                ${icon("bell", 19)}
+                <span class="notification-dot" data-notification-dot ${unreadCount > 0 ? "" : "hidden"} aria-hidden="true"></span>
+              </button>
+              <div id="notifications-slot" hidden></div>
+            </div>
             <button class="avatar account-trigger" type="button" data-action="toggle-account" aria-label="Open account menu">${initials(user.name)}</button>
           </div>
         </header>

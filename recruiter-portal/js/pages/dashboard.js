@@ -1,4 +1,13 @@
-import { clientName, emptyState, escapeHtml, formatDate, loadingBlock, statusBadge } from "../components/ui.js";
+import { clientName, emptyState, escapeHtml, formatDate, loadingBlock, statusBadge } from "../components/ui.js?v=20261116alerts1";
+
+function activityWhen(value) {
+  if (!value) return "";
+  const raw = String(value).trim();
+  if (/^\d{4}-\d{2}-\d{2}/.test(raw) || Number.isFinite(Date.parse(raw))) {
+    return formatDate(raw, { month: "short", day: "numeric" });
+  }
+  return raw;
+}
 
 export const dashboardPage = {
   title: "Dashboard",
@@ -13,11 +22,11 @@ export const dashboardPage = {
       <section class="workspace-grid">
         <article class="panel recent-jobs-panel">
           <div class="panel-heading"><div><h2>Recent jobs</h2><p>Jobs shared with your organization or assigned to you.</p></div><a class="text-link" href="#/jobs">View all jobs</a></div>
-          ${dashboard.jobs.length ? `<div class="table-scroll"><table class="data-table"><thead><tr><th>Job</th><th>Location</th><th>Priority</th><th>Assigned</th><th>Candidates</th><th>Status</th></tr></thead><tbody>${dashboard.jobs.map((job) => `<tr><td><a class="table-primary-link" href="#/jobs/${encodeURIComponent(job.id)}">${escapeHtml(job.title)}</a><small>${escapeHtml(clientName(job))}</small></td><td>${escapeHtml(job.location)}</td><td><span class="priority ${job.priority.toLowerCase()}">${escapeHtml(job.priority)}</span></td><td>${formatDate(job.assignedAt, { month: "short", day: "numeric" })}</td><td>${job.candidatesSubmitted}</td><td>${statusBadge(job.status)}</td></tr>`).join("")}</tbody></table></div>` : emptyState({ title: "No jobs assigned yet", message: "Headsbase will share roles here when your organization has been granted access.", actionLabel: "Review your profile", actionRoute: "/profile" })}
+          ${dashboard.jobs.length ? `<div class="table-scroll"><table class="data-table"><thead><tr><th>Job</th><th>Location</th><th>Priority</th><th>Assigned</th><th>Candidates</th><th>Status</th></tr></thead><tbody>${dashboard.jobs.map((job) => `<tr><td><a class="table-primary-link" href="#/jobs/${encodeURIComponent(job.id)}">${escapeHtml(job.title)}</a><small>${escapeHtml(clientName(job))}</small></td><td>${escapeHtml(job.location)}</td><td><span class="priority ${String(job.priority || "Standard").toLowerCase()}">${escapeHtml(job.priority)}</span></td><td>${formatDate(job.assignedAt, { month: "short", day: "numeric" })}</td><td>${job.candidatesSubmitted}</td><td>${statusBadge(job.status)}</td></tr>`).join("")}</tbody></table></div>` : emptyState({ title: "No jobs assigned yet", message: "Headsbase will share roles here when your organization has been granted access.", actionLabel: "Review your profile", actionRoute: "/profile" })}
         </article>
         <article class="panel activity-panel">
           <div class="panel-heading"><div><h2>Recent activity</h2><p>Updates related to your shared work.</p></div></div>
-          ${dashboard.activity.length ? `<ol class="activity-list">${dashboard.activity.map((activity) => `<li><span class="activity-dot"></span><div><strong>${escapeHtml(activity.title)}</strong><p>${escapeHtml(activity.detail)}</p></div><time>${escapeHtml(activity.when)}</time></li>`).join("")}</ol>` : emptyState({ title: "No activity yet", message: "When Headsbase shares a job or reviews a submission, updates will appear here." })}
+          ${dashboard.activity.length ? `<ol class="activity-list">${dashboard.activity.map((activity) => `<li><span class="activity-dot"></span><div><strong>${escapeHtml(activity.title)}</strong><p>${escapeHtml(activity.detail)}</p></div><time>${escapeHtml(activityWhen(activity.when))}</time></li>`).join("")}</ol>` : emptyState({ title: "No activity yet", message: "When Headsbase shares a job or reviews a submission, updates will appear here." })}
         </article>
       </section>`;
   },

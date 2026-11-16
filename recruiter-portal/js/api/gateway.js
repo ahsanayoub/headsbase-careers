@@ -1,15 +1,104 @@
-import { assertApiConfiguration, portalConfig } from "../config.js?v=20261113jobdesc6";
-import { enrichJobFromDescription } from "../components/ui.js?v=20261113jobdesc6";
-import { HttpClient } from "./http-client.js?v=20261113jobdesc6";
+import { assertApiConfiguration, portalConfig } from "../config.js?v=20261116alerts1";
+import { enrichJobFromDescription } from "../components/ui.js?v=20261116alerts1";
+import { HttpClient } from "./http-client.js?v=20261116alerts1";
 
-function normalizeUser(value) { if (!value) return null; return { ...value, name: value.name || [value.firstName, value.lastName].filter(Boolean).join(" ").trim() }; }
-function normalizeSession(payload) { const value = payload?.data ?? payload; if (!value) return null; if (value.user) return { ...value, user: normalizeUser(value.user) }; return { user: normalizeUser(value), organization: { name: value.organizationName || "" }, onboardingComplete: Boolean(value.emailVerified) }; }
-function normalizeProfile(payload) { const value = payload?.data ?? payload; if (!value) return null; if (value.user) return value; return { user: normalizeUser(value), organization: { name: value.organizationName || "" } }; }
-function normalizeDashboard(payload) { const value = payload?.data ?? payload ?? {}; const raw = value.metrics || {}; const metrics = Array.isArray(raw) ? raw : [{ label: "Active jobs", value: Number(raw.activeJobs || 0), detail: "Jobs currently available to you" }, { label: "Applications", value: Number(raw.applications || 0), detail: "Applications across accessible jobs" }, { label: "Candidates", value: Number(raw.candidates || 0), detail: "Candidates represented in submissions" }, { label: "Interviews", value: Number(raw.interviews || 0), detail: "Applications currently at interview stage" }]; return { ...value, metrics, jobs: Array.isArray(value.jobs) ? value.jobs.map(normalizeJob) : [], activity: Array.isArray(value.activity) ? value.activity : [] }; }
+function defaultNotificationPreferences(value = {}) {
+  return {
+    jobUpdates: value.jobUpdates !== false,
+    submissionUpdates: value.submissionUpdates !== false,
+  };
+}
+
+function normalizeUser(value) {
+  if (!value) return null;
+  return {
+    ...value,
+    name: value.name || [value.firstName, value.lastName].filter(Boolean).join(" ").trim(),
+    notificationPreferences: defaultNotificationPreferences(value.notificationPreferences),
+  };
+}
+
+function normalizeSession(payload) {
+  const value = payload?.data ?? payload;
+  if (!value) return null;
+  if (value.user) {
+    return {
+      ...value,
+      user: normalizeUser({
+        ...value.user,
+        notificationPreferences: value.user.notificationPreferences || value.notificationPreferences,
+      }),
+      organization: value.organization || { name: value.user.organizationName || "" },
+      notificationPreferences: defaultNotificationPreferences(
+        value.notificationPreferences || value.user.notificationPreferences,
+      ),
+    };
+  }
+  return {
+    user: normalizeUser(value),
+    organization: { name: value.organizationName || "" },
+    onboardingComplete: Boolean(value.emailVerified),
+    notificationPreferences: defaultNotificationPreferences(value.notificationPreferences),
+  };
+}
+
+function normalizeProfile(payload) {
+  const value = payload?.data ?? payload;
+  if (!value) return null;
+  if (value.user) {
+    return {
+      ...value,
+      user: normalizeUser({
+        ...value.user,
+        notificationPreferences: value.user.notificationPreferences || value.notificationPreferences,
+      }),
+      organization: value.organization || { name: "" },
+      notificationPreferences: defaultNotificationPreferences(
+        value.notificationPreferences || value.user?.notificationPreferences,
+      ),
+    };
+  }
+  return {
+    user: normalizeUser(value),
+    organization: { name: value.organizationName || "" },
+    notificationPreferences: defaultNotificationPreferences(value.notificationPreferences),
+  };
+}
+
+function normalizeActivityItem(activity) {
+  if (!activity) return null;
+  return {
+    title: activity.title || "Update",
+    detail: activity.detail || "",
+    when: activity.when || activity.createdAt || "",
+    href: activity.href || "",
+  };
+}
+
+function normalizeDashboard(payload) {
+  const value = payload?.data ?? payload ?? {};
+  const raw = value.metrics || {};
+  const metrics = Array.isArray(raw)
+    ? raw
+    : [
+        { label: "Active jobs", value: Number(raw.activeJobs || 0), detail: "Jobs currently available to you" },
+        { label: "Applications", value: Number(raw.applications || 0), detail: "Applications across accessible jobs" },
+        { label: "Candidates", value: Number(raw.candidates || 0), detail: "Candidates represented in submissions" },
+        { label: "Interviews", value: Number(raw.interviews || 0), detail: "Applications currently at interview stage" },
+      ];
+  return {
+    ...value,
+    metrics,
+    jobs: Array.isArray(value.jobs) ? value.jobs.map(normalizeJob) : [],
+    activity: Array.isArray(value.activity) ? value.activity.map(normalizeActivityItem).filter(Boolean) : [],
+  };
+}
+
 function normalizeJob(job) {
   if (!job) return null;
   const base = {
     ...job,
+    client: job.client || job.organizationName || "Headsbase assignment",
     location: job.location || [job.city, job.country].filter(Boolean).join(", ") || "",
     employmentType: job.employmentType || "",
     priority: job.priority || "Standard",
@@ -29,44 +118,211 @@ function normalizeJob(job) {
   };
   return enrichJobFromDescription(base);
 }
-function normalizeJobs(payload) { const value = payload?.data ?? payload; const items = Array.isArray(value) ? value : Array.isArray(value?.items) ? value.items : []; const pagination = Array.isArray(value) ? { page: 1, limit: items.length || 20, total: items.length, totalPages: items.length ? 1 : 0, hasMore: false } : (value?.pagination || {}); return { items: items.map(normalizeJob), pagination }; }
-function normalizeCandidates(payload) { const value = payload?.data ?? payload; const items = Array.isArray(value) ? value : Array.isArray(value?.items) ? value.items : []; const pagination = Array.isArray(value) ? { page: 1, limit: items.length || 20, total: items.length, totalPages: items.length ? 1 : 0, hasMore: false } : (value?.pagination || {}); return { items: items.map((candidate) => ({ ...candidate, name: candidate.name || [candidate.firstName, candidate.lastName].filter(Boolean).join(" ").trim(), job: candidate.job || candidate.jobTitle || candidate.currentTitle || "—", submitted: candidate.submitted || candidate.submittedAt || candidate.createdAt || "—", activity: candidate.activity || candidate.updatedAt || "—", status: candidate.status || "Submitted" })), pagination }; }
-function normalizeSubmissions(payload) { const value = payload?.data ?? payload; const items = Array.isArray(value) ? value : Array.isArray(value?.items) ? value.items : []; return { items: items.map((submission) => ({ ...submission, candidate: submission.candidate || [submission.firstName, submission.lastName].filter(Boolean).join(" ").trim(), job: submission.job || submission.jobTitle || "—", submitted: submission.submitted || submission.submittedAt || submission.createdAt || "—", status: submission.status || "Submitted", feedback: submission.feedback || "No feedback yet", nextAction: submission.nextAction || "Awaiting review" })) }; }
+
+function normalizeJobs(payload) {
+  const value = payload?.data ?? payload;
+  const items = Array.isArray(value) ? value : Array.isArray(value?.items) ? value.items : [];
+  const pagination = Array.isArray(value)
+    ? { page: 1, limit: items.length || 20, total: items.length, totalPages: items.length ? 1 : 0, hasMore: false }
+    : (value?.pagination || {});
+  return { items: items.map(normalizeJob), pagination };
+}
+
+function normalizeCandidates(payload) {
+  const value = payload?.data ?? payload;
+  const items = Array.isArray(value) ? value : Array.isArray(value?.items) ? value.items : [];
+  const pagination = Array.isArray(value)
+    ? { page: 1, limit: items.length || 20, total: items.length, totalPages: items.length ? 1 : 0, hasMore: false }
+    : (value?.pagination || {});
+  return {
+    items: items.map((candidate) => ({
+      ...candidate,
+      name: candidate.name || [candidate.firstName, candidate.lastName].filter(Boolean).join(" ").trim(),
+      job: candidate.job || candidate.jobTitle || candidate.currentTitle || "—",
+      submitted: candidate.submitted || candidate.submittedAt || candidate.createdAt || "—",
+      activity: candidate.activity || candidate.updatedAt || "—",
+      status: candidate.status || "Submitted",
+    })),
+    pagination,
+  };
+}
+
+function normalizeSubmissions(payload) {
+  const value = payload?.data ?? payload;
+  const items = Array.isArray(value) ? value : Array.isArray(value?.items) ? value.items : [];
+  return {
+    items: items.map((submission) => ({
+      ...submission,
+      candidate: submission.candidate || [submission.firstName, submission.lastName].filter(Boolean).join(" ").trim(),
+      job: submission.job || submission.jobTitle || "—",
+      submitted: submission.submitted || submission.submittedAt || submission.createdAt || "—",
+      status: submission.status || "Submitted",
+      feedback: submission.feedback || "No feedback yet",
+      nextAction: submission.nextAction || "Awaiting review",
+    })),
+  };
+}
+
+function normalizeNotifications(payload) {
+  const value = payload?.data ?? payload ?? {};
+  const items = Array.isArray(value.items) ? value.items : Array.isArray(value) ? value : [];
+  return {
+    items: items.map((item) => ({
+      id: item.id,
+      type: item.type || "",
+      title: item.title || "Update",
+      detail: item.detail || "",
+      href: item.href || "",
+      createdAt: item.createdAt || item.when || "",
+      readAt: item.readAt || null,
+      unread: item.unread ?? !item.readAt,
+    })),
+    unreadCount: Number(value.unreadCount ?? items.filter((item) => item.unread ?? !item.readAt).length),
+  };
+}
 
 class HtnApiGateway {
-  constructor(client) { this.client = client; }
-  async getSession() { return normalizeSession(await this.client.request("/auth/me", { allowUnauthorized: true })); }
-  async login(credentials) { const session = normalizeSession(await this.client.request("/auth/login", { method: "POST", body: credentials, allowUnauthorized: true })); if (session?.user && !session.user.emailVerified) await this.resendVerification(session.user.email); return session; }
-  async signup(details) { const name = String(details.name || "").trim(); const parts = name.split(/\s+/).filter(Boolean); const firstName = parts.shift() || "Recruiter"; const lastName = parts.join(" ") || "User"; return normalizeSession(await this.client.request("/auth/signup", { method: "POST", body: { ...details, firstName, lastName }, allowUnauthorized: true })); }
-  logout() { return this.client.request("/auth/logout", { method: "POST", allowUnauthorized: true }); }
-  requestPasswordReset(email) { return this.client.request("/auth/forgot-password", { method: "POST", body: { email }, allowUnauthorized: true }); }
-  resendVerification(email) { return this.client.request("/auth/resend-verification", { method: "POST", body: { email }, allowUnauthorized: true }); }
-  async verifyEmail(token) { return normalizeSession(await this.client.request("/auth/verify-email", { method: "POST", body: { token }, allowUnauthorized: true })); }
-  resetPassword(token, password) { return this.client.request("/auth/reset-password", { method: "POST", body: { token, password }, allowUnauthorized: true }); }
-  async getDashboard() { return normalizeDashboard(await this.client.request("/recruiter/dashboard")); }
-  async getJobs(filters) { return normalizeJobs(await this.client.request(`/recruiter/jobs${toQuery(filters)}`)); }
-  async getJob(jobId) { return normalizeJob(await this.client.request(`/recruiter/jobs/${encodeURIComponent(jobId)}`)); }
-  async getCandidates(filters) { return normalizeCandidates(await this.client.request(`/recruiter/candidates${toQuery(filters)}`)); }
-  async getCandidate(candidateId) { const value = await this.client.request(`/recruiter/candidates/${encodeURIComponent(candidateId)}`); return value?.data ?? value; }
-  async getSubmissions(filters) { return normalizeSubmissions(await this.client.request(`/recruiter/submissions${toQuery(filters)}`)); }
-  async getProfile() { return normalizeProfile(await this.client.request("/recruiter/profile")); }
-  async updateProfile(patch) { const userPatch = patch?.user || patch || {}; const nameParts = String(userPatch.name || "").trim().split(/\s+/).filter(Boolean); const body = {}; if (nameParts.length) { body.firstName = nameParts.shift(); body.lastName = nameParts.join(" ") || "User"; } if (userPatch.phone !== undefined) body.phone = userPatch.phone; if (userPatch.jobTitle !== undefined) body.jobTitle = userPatch.jobTitle; return normalizeSession(await this.client.request("/recruiter/profile", { method: "PATCH", body })); }
-  updateSession(patch) { const userPatch = patch?.user || {}; return this.updateProfile({ user: { name: userPatch.name, phone: userPatch.phone, jobTitle: userPatch.jobTitle } }); }
-  completeOnboarding() { return this.getSession(); }
-  async createResumeUpload(file) { return this.client.request("/api/resumes/upload-url", { method: "POST", body: { fileName: file.name, mimeType: file.type, size: file.size } }); }
-  async uploadResume(file) { const upload = await this.createResumeUpload(file); const response = await fetch(upload.uploadUrl, { method: "PUT", headers: { "Content-Type": upload.mimeType }, body: file }); if (!response.ok) throw new Error("Resume upload failed. Please try again."); return upload; }
-  async submitCandidate(payload) { return this.client.request("/recruiter/submissions", { method: "POST", body: payload }); }
+  constructor(client) {
+    this.client = client;
+  }
+
+  async getSession() {
+    return normalizeSession(await this.client.request("/auth/me", { allowUnauthorized: true }));
+  }
+
+  async login(credentials) {
+    const session = normalizeSession(await this.client.request("/auth/login", { method: "POST", body: credentials, allowUnauthorized: true }));
+    if (session?.user && !session.user.emailVerified) await this.resendVerification(session.user.email);
+    return session;
+  }
+
+  async signup(details) {
+    const name = String(details.name || "").trim();
+    const parts = name.split(/\s+/).filter(Boolean);
+    const firstName = parts.shift() || "Recruiter";
+    const lastName = parts.join(" ") || "User";
+    return normalizeSession(await this.client.request("/auth/signup", {
+      method: "POST",
+      body: { ...details, firstName, lastName },
+      allowUnauthorized: true,
+    }));
+  }
+
+  logout() {
+    return this.client.request("/auth/logout", { method: "POST", allowUnauthorized: true });
+  }
+
+  requestPasswordReset(email) {
+    return this.client.request("/auth/forgot-password", { method: "POST", body: { email }, allowUnauthorized: true });
+  }
+
+  resendVerification(email) {
+    return this.client.request("/auth/resend-verification", { method: "POST", body: { email }, allowUnauthorized: true });
+  }
+
+  async verifyEmail(token) {
+    return normalizeSession(await this.client.request("/auth/verify-email", { method: "POST", body: { token }, allowUnauthorized: true }));
+  }
+
+  resetPassword(token, password) {
+    return this.client.request("/auth/reset-password", { method: "POST", body: { token, password }, allowUnauthorized: true });
+  }
+
+  async getDashboard() {
+    return normalizeDashboard(await this.client.request("/recruiter/dashboard"));
+  }
+
+  async getJobs(filters) {
+    return normalizeJobs(await this.client.request(`/recruiter/jobs${toQuery(filters)}`));
+  }
+
+  async getJob(jobId) {
+    return normalizeJob(await this.client.request(`/recruiter/jobs/${encodeURIComponent(jobId)}`));
+  }
+
+  async getCandidates(filters) {
+    return normalizeCandidates(await this.client.request(`/recruiter/candidates${toQuery(filters)}`));
+  }
+
+  async getCandidate(candidateId) {
+    const value = await this.client.request(`/recruiter/candidates/${encodeURIComponent(candidateId)}`);
+    return value?.data ?? value;
+  }
+
+  async getSubmissions(filters) {
+    return normalizeSubmissions(await this.client.request(`/recruiter/submissions${toQuery(filters)}`));
+  }
+
+  async getNotifications(filters = {}) {
+    return normalizeNotifications(await this.client.request(`/recruiter/notifications${toQuery(filters)}`));
+  }
+
+  markNotificationRead(notificationId) {
+    return this.client.request(`/recruiter/notifications/${encodeURIComponent(notificationId)}/read`, { method: "POST" });
+  }
+
+  markAllNotificationsRead() {
+    return this.client.request("/recruiter/notifications/read-all", { method: "POST" });
+  }
+
+  async getProfile() {
+    return normalizeProfile(await this.client.request("/recruiter/profile"));
+  }
+
+  async updateProfile(patch) {
+    const userPatch = patch?.user || patch || {};
+    const nameParts = String(userPatch.name || "").trim().split(/\s+/).filter(Boolean);
+    const body = {};
+    if (nameParts.length) {
+      body.firstName = nameParts.shift();
+      body.lastName = nameParts.join(" ") || "User";
+    }
+    if (userPatch.phone !== undefined) body.phone = userPatch.phone;
+    if (userPatch.jobTitle !== undefined) body.jobTitle = userPatch.jobTitle;
+    if (userPatch.role !== undefined && userPatch.jobTitle === undefined) body.jobTitle = userPatch.role;
+    const prefs = patch?.notificationPreferences;
+    if (prefs && typeof prefs === "object") {
+      body.notificationPreferences = {
+        jobUpdates: Boolean(prefs.jobUpdates),
+        submissionUpdates: Boolean(prefs.submissionUpdates),
+      };
+    }
+    return normalizeSession(await this.client.request("/recruiter/profile", { method: "PATCH", body }));
+  }
+
+  updateSession(patch) {
+    const userPatch = patch?.user || {};
+    return this.updateProfile({
+      user: { name: userPatch.name, phone: userPatch.phone, jobTitle: userPatch.jobTitle },
+      notificationPreferences: patch?.notificationPreferences,
+    });
+  }
+
+  completeOnboarding() {
+    return this.getSession();
+  }
+
+  async createResumeUpload(file) {
+    return this.client.request("/api/resumes/upload-url", { method: "POST", body: { fileName: file.name, mimeType: file.type, size: file.size } });
+  }
+
+  async uploadResume(file) {
+    const upload = await this.createResumeUpload(file);
+    const response = await fetch(upload.uploadUrl, { method: "PUT", headers: { "Content-Type": upload.mimeType }, body: file });
+    if (!response.ok) throw new Error("Resume upload failed. Please try again.");
+    return upload;
+  }
+
+  async submitCandidate(payload) {
+    return this.client.request("/recruiter/submissions", { method: "POST", body: payload });
+  }
 }
 
 function toQuery(filters = {}) {
   const query = new URLSearchParams();
-
   Object.entries(filters).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== "") {
-      query.set(key, value);
-    }
+    if (value !== undefined && value !== null && value !== "") query.set(key, value);
   });
-
   const value = query.toString();
   return value ? `?${value}` : "";
 }
@@ -75,4 +331,7 @@ export function createRecruiterGateway() {
   assertApiConfiguration();
   return new HtnApiGateway(new HttpClient({ origin: portalConfig.apiOrigin }));
 }
-export function apiValue(payload) { return payload?.data ?? payload; }
+
+export function apiValue(payload) {
+  return payload?.data ?? payload;
+}

@@ -1,6 +1,6 @@
-import { assertApiConfiguration, portalConfig } from "../config.js?v=20261116alerts1";
-import { enrichJobFromDescription } from "../components/ui.js?v=20261116alerts1";
-import { HttpClient } from "./http-client.js?v=20261116alerts1";
+import { assertApiConfiguration, portalConfig } from "../config.js?v=20261116alerts2";
+import { enrichJobFromDescription } from "../components/ui.js?v=20261116alerts2";
+import { HttpClient } from "./http-client.js?v=20261116alerts2";
 
 function defaultNotificationPreferences(value = {}) {
   return {
@@ -99,7 +99,14 @@ function normalizeJob(job) {
   const base = {
     ...job,
     client: job.client || job.organizationName || "Headsbase assignment",
-    location: job.location || [job.city, job.country].filter(Boolean).join(", ") || "",
+    location: (() => {
+      const explicit = String(job.location || "").trim();
+      const workplace = String(job.workplaceType || "").trim();
+      if (job.remote === true || /remote/i.test(workplace) || /^remote$/i.test(explicit)) return "Remote";
+      if (explicit) return explicit;
+      if (/hybrid|on[-\s]?site/i.test(workplace)) return workplace;
+      return [job.city, job.country].filter(Boolean).join(", ") || "";
+    })(),
     employmentType: job.employmentType || "",
     priority: job.priority || "Standard",
     assignedAt: job.assignedAt || job.postedAt || job.createdAt,

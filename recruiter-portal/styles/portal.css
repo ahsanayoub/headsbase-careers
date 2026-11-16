@@ -98,13 +98,23 @@ h1, h2, h3, p { margin-top: 0; }
 .metric span, .metric small { display: block; color: var(--portal-muted); font-size: 12px; }
 .metric span { margin-bottom: 13px; font-weight: 600; }
 .metric strong { display: block; margin-bottom: 5px; color: #172119; font-size: 31px; line-height: 1; letter-spacing: -.04em; }
-.workspace-grid { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(300px, .9fr); gap: 20px; align-items: start; }
+.workspace-grid { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(280px, .85fr); gap: 20px; align-items: start; }
+.recent-jobs-list { margin: 0; padding: 0; list-style: none; }
+.recent-jobs-list li { display: flex; gap: 16px; align-items: flex-start; justify-content: space-between; padding: 16px 23px; border-bottom: 1px solid var(--portal-line); }
+.recent-jobs-list li:last-child { border-bottom: 0; }
+.recent-job-copy { min-width: 0; flex: 1; }
+.recent-job-copy .table-primary-link { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
+.recent-job-copy small { display: block; margin-top: 4px; color: var(--portal-muted); font-size: 12px; }
+.recent-job-meta { display: flex; flex-wrap: wrap; gap: 8px 14px; margin: 8px 0 0; color: var(--portal-muted); font-size: 12px; }
+.recent-job-meta span + span::before { content: "·"; margin-right: 14px; color: #b4beb7; }
+.recent-job-aside { display: grid; gap: 8px; justify-items: end; flex: 0 0 auto; padding-top: 2px; }
 .activity-list { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
 .activity-list li { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 10px; align-items: start; padding: 17px 23px; border-bottom: 1px solid var(--portal-line); }
 .activity-list li:last-child { border-bottom: 0; }
 .activity-dot { width: 7px; height: 7px; margin-top: 6px; border-radius: 50%; background: #6b9e7b; box-shadow: 0 0 0 4px #edf5ef; }
 .activity-list strong { display: block; margin-bottom: 2px; font-size: 13px; }
 .activity-list p, .activity-list time { margin: 0; color: var(--portal-muted); font-size: 12px; }
+.activity-list p { overflow-wrap: anywhere; }
 .activity-list time { white-space: nowrap; }
 
 .table-scroll { width: 100%; overflow-x: auto; }
@@ -311,7 +321,6 @@ h1, h2, h3, p { margin-top: 0; }
   .portal-header { gap: 17px; padding: 23px 17px 19px; }
   .portal-header h1 { font-size: 27px; }
   .page-description { font-size: 12px; }
-  .header-actions .icon-control { display: none; }
   .portal-main { padding: 18px 16px 44px; }
   .metrics-grid { grid-template-columns: 1fr; }
   .metric, .metric:nth-child(2) { border-right: 0; border-bottom: 1px solid var(--portal-line); }
@@ -320,7 +329,8 @@ h1, h2, h3, p { margin-top: 0; }
   .panel-heading:not(.jobs-heading) { align-items: flex-start; }
   .table-scroll { overflow-x: auto; }
   .data-table { min-width: 700px; }
-  .recent-jobs-panel .data-table { min-width: 650px; }
+  .recent-jobs-list li { flex-direction: column; gap: 10px; padding: 15px 16px; }
+  .recent-job-aside { justify-items: start; grid-auto-flow: column; align-items: center; }
   .activity-list li { padding: 15px 16px; grid-template-columns: 10px minmax(0, 1fr); }
   .activity-list time { grid-column: 2; }
   .filter-toolbar { align-items: stretch; padding: 12px 16px; }

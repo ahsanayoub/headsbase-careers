@@ -1,4 +1,4 @@
-import { clientName, emptyState, escapeHtml, formatDate, loadingBlock, statusBadge } from "../components/ui.js?v=20261116alerts1";
+import { clientName, emptyState, escapeHtml, formatDate, loadingBlock, statusBadge } from "../components/ui.js?v=20261116alerts2";
 
 function activityWhen(value) {
   if (!value) return "";
@@ -7,6 +7,37 @@ function activityWhen(value) {
     return formatDate(raw, { month: "short", day: "numeric" });
   }
   return raw;
+}
+
+function humanizeActivityDetail(value) {
+  return String(value || "").replace(/\b([A-Z]{2,}(?:_[A-Z]+)*)\b/g, (match) =>
+    match
+      .toLowerCase()
+      .split("_")
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" "),
+  );
+}
+
+function recentJobsList(jobs) {
+  return `<ul class="recent-jobs-list">${jobs.map((job) => {
+    const meta = [
+      job.location && job.location !== "Not specified" ? job.location : "",
+      formatDate(job.assignedAt, { month: "short", day: "numeric" }),
+      `${job.candidatesSubmitted} candidate${Number(job.candidatesSubmitted) === 1 ? "" : "s"}`,
+    ].filter(Boolean);
+    return `<li>
+      <div class="recent-job-copy">
+        <a class="table-primary-link" href="#/jobs/${encodeURIComponent(job.id)}">${escapeHtml(job.title)}</a>
+        <small>${escapeHtml(clientName(job))}</small>
+        <p class="recent-job-meta">${meta.map((part) => `<span>${escapeHtml(part)}</span>`).join("")}</p>
+      </div>
+      <div class="recent-job-aside">
+        <span class="priority ${String(job.priority || "Standard").toLowerCase()}">${escapeHtml(job.priority || "Standard")}</span>
+        ${statusBadge(job.status)}
+      </div>
+    </li>`;
+  }).join("")}</ul>`;
 }
 
 export const dashboardPage = {
@@ -22,11 +53,15 @@ export const dashboardPage = {
       <section class="workspace-grid">
         <article class="panel recent-jobs-panel">
           <div class="panel-heading"><div><h2>Recent jobs</h2><p>Jobs shared with your organization or assigned to you.</p></div><a class="text-link" href="#/jobs">View all jobs</a></div>
-          ${dashboard.jobs.length ? `<div class="table-scroll"><table class="data-table"><thead><tr><th>Job</th><th>Location</th><th>Priority</th><th>Assigned</th><th>Candidates</th><th>Status</th></tr></thead><tbody>${dashboard.jobs.map((job) => `<tr><td><a class="table-primary-link" href="#/jobs/${encodeURIComponent(job.id)}">${escapeHtml(job.title)}</a><small>${escapeHtml(clientName(job))}</small></td><td>${escapeHtml(job.location)}</td><td><span class="priority ${String(job.priority || "Standard").toLowerCase()}">${escapeHtml(job.priority)}</span></td><td>${formatDate(job.assignedAt, { month: "short", day: "numeric" })}</td><td>${job.candidatesSubmitted}</td><td>${statusBadge(job.status)}</td></tr>`).join("")}</tbody></table></div>` : emptyState({ title: "No jobs assigned yet", message: "Headsbase will share roles here when your organization has been granted access.", actionLabel: "Review your profile", actionRoute: "/profile" })}
+          ${dashboard.jobs.length
+            ? recentJobsList(dashboard.jobs)
+            : emptyState({ title: "No jobs assigned yet", message: "Headsbase will share roles here when your organization has been granted access.", actionLabel: "Review your profile", actionRoute: "/profile" })}
         </article>
         <article class="panel activity-panel">
           <div class="panel-heading"><div><h2>Recent activity</h2><p>Updates related to your shared work.</p></div></div>
-          ${dashboard.activity.length ? `<ol class="activity-list">${dashboard.activity.map((activity) => `<li><span class="activity-dot"></span><div><strong>${escapeHtml(activity.title)}</strong><p>${escapeHtml(activity.detail)}</p></div><time>${escapeHtml(activityWhen(activity.when))}</time></li>`).join("")}</ol>` : emptyState({ title: "No activity yet", message: "When Headsbase shares a job or reviews a submission, updates will appear here." })}
+          ${dashboard.activity.length
+            ? `<ol class="activity-list">${dashboard.activity.map((activity) => `<li><span class="activity-dot"></span><div><strong>${escapeHtml(activity.title)}</strong><p>${escapeHtml(humanizeActivityDetail(activity.detail))}</p></div><time>${escapeHtml(activityWhen(activity.when))}</time></li>`).join("")}</ol>`
+            : emptyState({ title: "No activity yet", message: "When Headsbase shares a job or reviews a submission, updates will appear here." })}
         </article>
       </section>`;
   },

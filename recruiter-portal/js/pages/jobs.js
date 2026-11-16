@@ -1,4 +1,4 @@
-import { clientName, emptyState, escapeHtml, formatDate, icon, loadingBlock, renderJobDetailSections, statusBadge } from "../components/ui.js?v=20261116alerts1";
+import { clientName, emptyState, escapeHtml, formatDate, icon, loadingBlock, renderJobDetailSections, statusBadge } from "../components/ui.js?v=20261116alerts2";
 
 function jobFilters() {
   return `<form class="filter-toolbar" id="jobs-filters" role="search">

@@ -1,15 +1,15 @@
-import { createRecruiterGateway } from "./api/gateway.js?v=20261116alerts2";
-import { AuthStore, isWorkspaceReady } from "./auth/auth-store.js?v=20261116alerts2";
-import { forgotPasswordView, loginView, onboardingView, resetPasswordView, signupView, verifyEmailView } from "./auth/auth-views.js?v=20261116alerts2";
-import { errorState, loadingBlock } from "./components/ui.js?v=20261116alerts2";
-import { notificationsPanel, workspaceLayout } from "./layouts/workspace-layout.js?v=20261116alerts2";
-import { candidateDetailPage, candidatesPage } from "./pages/candidates.js?v=20261116alerts2";
-import { dashboardPage } from "./pages/dashboard.js?v=20261116alerts2";
-import { helpPage } from "./pages/help.js?v=20261116alerts2";
-import { jobDetailPage, jobsPage } from "./pages/jobs.js?v=20261116alerts2";
-import { profilePage } from "./pages/profile.js?v=20261116alerts2";
-import { submissionsPage } from "./pages/submissions.js?v=20261116alerts2";
-import { Router } from "./router.js?v=20261116alerts2";
+import { createRecruiterGateway } from "./api/gateway.js?v=20261116nav1";
+import { AuthStore, isWorkspaceReady } from "./auth/auth-store.js?v=20261116nav1";
+import { forgotPasswordView, loginView, onboardingView, resetPasswordView, signupView, verifyEmailView } from "./auth/auth-views.js?v=20261116nav1";
+import { errorState, loadingBlock } from "./components/ui.js?v=20261116nav1";
+import { notificationsPanel, workspaceLayout } from "./layouts/workspace-layout.js?v=20261116nav1";
+import { candidateDetailPage, candidatesPage } from "./pages/candidates.js?v=20261116nav1";
+import { dashboardPage } from "./pages/dashboard.js?v=20261116nav1";
+import { helpPage } from "./pages/help.js?v=20261116nav1";
+import { jobDetailPage, jobsPage } from "./pages/jobs.js?v=20261116nav1";
+import { profilePage } from "./pages/profile.js?v=20261116nav1";
+import { submissionsPage } from "./pages/submissions.js?v=20261116nav1";
+import { Router } from "./router.js?v=20261116nav1";
 
 const root = document.querySelector("#portal-root");
 let api = null;

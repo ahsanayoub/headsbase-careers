@@ -1,12 +1,12 @@
-import { escapeHtml, formatDate, icon, initials } from "../components/ui.js?v=20261116alerts2";
+import { escapeHtml, formatDate, icon, initials } from "../components/ui.js?v=20261116nav1";
 
 const navigation = [
-  ["/dashboard", "Dashboard", "dashboard"],
-  ["/jobs", "My Jobs", "briefcase"],
-  ["/candidates", "Candidates", "users"],
-  ["/submissions", "Submissions", "send"],
-  ["/profile", "Profile / Organization", "settings"],
-  ["/help", "Help", "help"],
+  ["/dashboard", "Dashboard", "dashboard", "Dashboard"],
+  ["/jobs", "My Jobs", "briefcase", "Jobs"],
+  ["/candidates", "Candidates", "users", "Candidates"],
+  ["/submissions", "Submissions", "send", "Submissions"],
+  ["/profile", "Profile / Organization", "settings", "Profile"],
+  ["/help", "Help", "help", "Help"],
 ];
 
 function notificationWhen(value) {
@@ -56,10 +56,12 @@ export function workspaceLayout({ session, route, page, notifications = { items:
           <img src="../htn.svg" alt="Headsbase Talent Network" />
           <span>Recruiter portal</span>
         </a>
-        <nav class="portal-nav">
-          ${navigation.map(([path, label, iconName]) => `
-            <a class="portal-nav-link ${activePath === path ? "is-active" : ""}" href="#${path}">
-              ${icon(iconName)}<span>${label}</span>
+        <nav class="portal-nav" aria-label="Primary">
+          ${navigation.map(([path, label, iconName, shortLabel]) => `
+            <a class="portal-nav-link ${activePath === path ? "is-active" : ""}" href="#${path}" title="${escapeHtml(label)}">
+              ${icon(iconName)}
+              <span class="nav-label-full">${escapeHtml(label)}</span>
+              <span class="nav-label-short">${escapeHtml(shortLabel || label)}</span>
             </a>`).join("")}
         </nav>
         <div class="sidebar-account">

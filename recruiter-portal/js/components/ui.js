@@ -329,6 +329,45 @@ function renderOverviewFromDescription(description) {
   return `<div class="job-prose">${blocks.join("")}</div>`;
 }
 
+function proseOrLines(value) {
+  const text = cleanJobFieldText(value);
+  if (!text) return "";
+  const items = splitJobListItems(text);
+  if (items.length > 1) return formatJobListHtml(text);
+  return splitJobParagraphs(text).map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("");
+}
+
+function partnerDetailBlock(title, value) {
+  const body = proseOrLines(value);
+  return body ? `<div class="partner-fact"><span>${escapeHtml(title)}</span><div>${body}</div></div>` : "";
+}
+
+export function renderPartnerOpsSections(job) {
+  const recruiting = [
+    partnerDetailBlock("Screening questions", job.screeningQuestions),
+    partnerDetailBlock("Shift details", job.shiftDetails),
+    partnerDetailBlock("Interview process", job.interviewProcess),
+    partnerDetailBlock("Relocation details", job.relocationDetails),
+    partnerDetailBlock("Target companies", job.targetCompanies),
+    job.weeklySubmissionTarget != null
+      ? `<div class="partner-fact"><span>Weekly submission target</span><div><p>${escapeHtml(String(job.weeklySubmissionTarget))}</p></div></div>`
+      : "",
+  ].filter(Boolean);
+  const commercial = [
+    partnerDetailBlock("SP payout", job.spPayout),
+    partnerDetailBlock("Payment terms", job.paymentTerms),
+    partnerDetailBlock("Replacement terms", job.replacementTerms),
+  ].filter(Boolean);
+  const parts = [];
+  if (recruiting.length) {
+    parts.push(`<section class="partner-ops-section"><h3>Recruiting information</h3><div class="partner-ops-grid">${recruiting.join("")}</div></section>`);
+  }
+  if (commercial.length) {
+    parts.push(`<section class="partner-ops-section"><h3>Commercial information</h3><div class="partner-ops-grid">${commercial.join("")}</div></section>`);
+  }
+  return parts.join("");
+}
+
 export function renderJobDetailSections(job) {
   const parsed = parseJobDescription(job.description || "");
   const sectionBody = (key) => parsed.sections.find((section) => section.key === key)?.body || "";
@@ -342,7 +381,7 @@ export function renderJobDetailSections(job) {
   const levels = splitJobListItems(levelsText);
   const hasStructured = responsibilities.length > 0 || requirements.length > 0 || preferred.length > 0 || levels.length > 0;
   if (!hasStructured) {
-    return `<section><h3>About the role</h3>${formatJobDescriptionHtml(job.description || "")}</section>`;
+    return `<section><h3>About the role</h3>${formatJobDescriptionHtml(job.description || "")}</section>${renderPartnerOpsSections(job)}`;
   }
   const parts = [`<section><h3>About the role</h3>${renderOverviewFromDescription(job.description || "")}</section>`];
   if (responsibilities.length) parts.push(`<section><h3>Scope of work</h3>${formatJobListHtml(responsibilitiesText)}</section>`);
@@ -353,5 +392,6 @@ export function renderJobDetailSections(job) {
   if (whyJoin?.body) {
     parts.push(`<section><h3>Why join</h3>${splitJobParagraphs(whyJoin.body).map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")}</section>`);
   }
+  parts.push(renderPartnerOpsSections(job));
   return parts.join("");
 }

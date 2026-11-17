@@ -189,6 +189,31 @@ h1, h2, h3, p { margin-top: 0; }
 .skill-list { display: flex; flex-wrap: wrap; gap: 7px; }
 .skill-list span { padding: 6px 9px; border: 1px solid #d9e5dc; border-radius: 6px; color: #356247; background: #f3f8f4; font-size: 12px; font-weight: 620; }
 .instructions-section { padding-left: 18px !important; border-left: 3px solid #94bea1 !important; }
+.partner-ops-section .partner-ops-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 22px;
+}
+.partner-ops-section .partner-fact {
+  display: grid;
+  gap: 6px;
+}
+.partner-ops-section .partner-fact span {
+  color: var(--portal-faint);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.partner-ops-section .partner-fact p,
+.partner-ops-section .partner-fact li {
+  color: #59655d;
+  font-size: 14px;
+  line-height: 1.65;
+}
+@media (max-width: 720px) {
+  .partner-ops-section .partner-ops-grid { grid-template-columns: 1fr; }
+}
 .submission-dialog { width: min(540px, calc(100vw - 28px)); padding: 0; border: 0; border-radius: 12px; box-shadow: 0 26px 70px rgba(15,25,18,.28); }
 .submission-dialog::backdrop { background: rgba(16,24,18,.48); }
 .dialog-card { display: grid; gap: 15px; padding: 25px; background: #fff; }

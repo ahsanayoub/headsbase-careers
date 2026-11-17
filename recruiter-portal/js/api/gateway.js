@@ -1,6 +1,6 @@
-import { assertApiConfiguration, portalConfig } from "../config.js?v=20261116alerts2";
-import { enrichJobFromDescription } from "../components/ui.js?v=20261116alerts2";
-import { HttpClient } from "./http-client.js?v=20261116alerts2";
+import { assertApiConfiguration, portalConfig } from "../config.js?v=20261117partner1";
+import { enrichJobFromDescription } from "../components/ui.js?v=20261117partner1";
+import { HttpClient } from "./http-client.js?v=20261117partner1";
 
 function defaultNotificationPreferences(value = {}) {
   return {
@@ -94,10 +94,31 @@ function normalizeDashboard(payload) {
   };
 }
 
+function partnerOpsFromJob(job) {
+  const partner = job?.partnerOps && typeof job.partnerOps === "object" ? job.partnerOps : {};
+  const text = (value) => (typeof value === "string" && value.trim() ? value.trim() : "");
+  const weeklyRaw = partner.weeklySubmissionTarget ?? job?.weeklySubmissionTarget;
+  const weekly = weeklyRaw == null || weeklyRaw === "" ? null : Number(weeklyRaw);
+  return {
+    screeningQuestions: text(partner.screeningQuestions ?? job?.screeningQuestions),
+    shiftDetails: text(partner.shiftDetails ?? job?.shiftDetails),
+    interviewProcess: text(partner.interviewProcess ?? job?.interviewProcess),
+    relocationDetails: text(partner.relocationDetails ?? job?.relocationDetails),
+    targetCompanies: text(partner.targetCompanies ?? job?.targetCompanies),
+    weeklySubmissionTarget: Number.isFinite(weekly) ? Math.trunc(weekly) : null,
+    spPayout: text(partner.spPayout ?? job?.spPayout),
+    paymentTerms: text(partner.paymentTerms ?? job?.paymentTerms),
+    replacementTerms: text(partner.replacementTerms ?? job?.replacementTerms),
+  };
+}
+
 function normalizeJob(job) {
   if (!job) return null;
+  const partnerOps = partnerOpsFromJob(job);
   const base = {
     ...job,
+    ...partnerOps,
+    partnerOps,
     client: job.client || job.organizationName || "Headsbase assignment",
     location: (() => {
       const explicit = String(job.location || "").trim();

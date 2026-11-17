@@ -15,6 +15,7 @@ const {
   formatJobListHtml,
   parseJobDescription,
   renderJobDetailSections,
+  renderPartnerOpsSections,
   unglueProseText,
 } = await import(pathToFileURL(tmp).href);
 unlinkSync(tmp);
@@ -128,4 +129,26 @@ test("renderJobDetailSections recovers Preferred Experience from description whe
   assert.match(html, /<h3>Preferred qualifications<\/h3>/);
   assert.match(html, /Foreign tax credit/);
   assert.match(html, /<h3>Levels<\/h3>/);
+});
+
+test("renderPartnerOpsSections shows recruiting and commercial fields", () => {
+  const html = renderPartnerOpsSections({
+    screeningQuestions: "Are you licensed?",
+    shiftDetails: "Mon–Fri, 9–5 ET",
+    interviewProcess: "Screen + panel",
+    relocationDetails: "",
+    targetCompanies: "Big 4",
+    weeklySubmissionTarget: 5,
+    spPayout: "$2,500",
+    paymentTerms: "Net 30",
+    replacementTerms: "90-day guarantee",
+  });
+  assert.match(html, /Recruiting information/);
+  assert.match(html, /Screening questions/);
+  assert.match(html, /Weekly submission target/);
+  assert.match(html, />5</);
+  assert.match(html, /Commercial information/);
+  assert.match(html, /SP payout/);
+  assert.match(html, /Net 30/);
+  assert.doesNotMatch(html, /Relocation details/);
 });

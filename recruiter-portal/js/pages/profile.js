@@ -1,5 +1,5 @@
-import { escapeHtml, icon, initials, loadingBlock } from "../components/ui.js?v=20261116alerts2";
-import { isDevelopmentMode } from "../config.js?v=20261116alerts2";
+import { escapeHtml, icon, initials, loadingBlock } from "../components/ui.js?v=20261117partner1";
+import { isDevelopmentMode } from "../config.js?v=20261117partner1";
 
 function profileForm(profile) {
   const user = profile.user;

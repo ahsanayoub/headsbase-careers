@@ -1,4 +1,4 @@
-import { escapeHtml, formatDate, icon, initials } from "../components/ui.js?v=20261116nav1";
+import { escapeHtml, formatDate, icon, initials } from "../components/ui.js?v=20261117partner1";
 
 const navigation = [
   ["/dashboard", "Dashboard", "dashboard", "Dashboard"],

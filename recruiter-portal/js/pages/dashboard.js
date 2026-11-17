@@ -1,4 +1,4 @@
-import { clientName, emptyState, escapeHtml, formatDate, loadingBlock, statusBadge } from "../components/ui.js?v=20261116alerts2";
+import { clientName, emptyState, escapeHtml, formatDate, loadingBlock, statusBadge } from "../components/ui.js?v=20261117partner1";
 
 function activityWhen(value) {
   if (!value) return "";
